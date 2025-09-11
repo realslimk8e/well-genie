@@ -42,4 +42,4 @@ This gap leaves users without actionable insights, limiting their ability to pro
 ## 🚀 Getting Started
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-username/wellgenie.git
+   https://github.com/realslimk8e/well-genie.git
