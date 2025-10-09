@@ -15,6 +15,22 @@ WellGenie is a Java desktop health companion app with a chatbot that consolidate
 ---
 
 ## 🚀 Getting Started
+0. Install [uv](https://docs.astral.sh/uv/) & [npm](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm)
 1. Clone the repository:
    ```bash
    https://github.com/realslimk8e/well-genie.git
+   ```
+2. Setting up & run local dev:   
+   A. First terminal
+   ```bash
+   cd frontend
+   npm install
+   npm run dev
+   ```
+   B. Second terminal
+   ```bash
+   cd backend
+   uv sync
+   uv run uvicorn app.main:app --reload
+   ```
+   
