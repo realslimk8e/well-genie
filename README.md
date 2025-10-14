@@ -7,11 +7,6 @@ WellGenie is a Java desktop health companion app with a chatbot that consolidate
 - Katherine Arnaud  
 - Quinn Nguyen  
 
-## 🛠 Repository Structure
-- **main branch** → Stable code releases  
-- **development branch** → Active development and integration  
-- **feature branches** → Separate branches for each feature under development  
-
 ---
 
 ## 🚀 Getting Started
