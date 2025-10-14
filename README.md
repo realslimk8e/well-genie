@@ -32,5 +32,6 @@ WellGenie is a Java desktop health companion app with a chatbot that consolidate
    cd backend
    uv sync
    uv run uvicorn app.main:app --reload
+   uv run seed.py
    ```
    
