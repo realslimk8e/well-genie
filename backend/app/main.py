@@ -1,21 +1,33 @@
-import csv
-from fastapi import FastAPI, File, UploadFile, HTTPException
 from pathlib import Path
-import shutil
+from fastapi import FastAPI, UploadFile, File, HTTPException, Depends
+from sqlmodel import SQLModel, Session
+
+from app.database import engine, get_session
+from app.models import SleepEntry, DietEntry, ExerciseEntry
 from app.services.validators import DocumentValidator
+from app.services.ingest import IngestService
 
 UPLOAD_DIR = Path("uploads")
 UPLOAD_DIR.mkdir(exist_ok=True)
 
 app = FastAPI(title="WellGenie API")
 
+# --- Startup
+@app.on_event("startup")
+def on_startup():
+    """Initialize database tables at app startup."""
+    SQLModel.metadata.create_all(engine)
+
+# --- Routes
 @app.get("/")
 async def root():
     return {"message": "This is really cool eh!"}
 
 @app.post("/upload")
-async def upload_file(file: UploadFile = File(...)):
-    """Upload a single file with basic validation"""
+async def upload_file(file: UploadFile = File(...),
+                      session: Session = Depends(get_session)):
+    """Upload + validate + add CSV file into SQLite.
+    Supports: sleep.csv, diet.csv, exercise.csv"""
     
     validator = DocumentValidator()
     validation = await validator.validate_file(file)
@@ -30,19 +42,18 @@ async def upload_file(file: UploadFile = File(...)):
                 },
             )
     
-    #copy the upload file local folder for now
-    file_path = UPLOAD_DIR/file.filename
-    
-    await file.seek(0)
-    with open(file_path, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
-        
+    ingest_service = IngestService()
+    result = await ingest_service.ingest_csv(
+        file=file,
+        category=validation["category"],
+        session=session
+    )
+       
     #success message
     return {
         "message": "Upload successful",
         "filename": file.filename,
         "category": validation["category"],
-        "headers": validation["headers"],
-        "location": str(file_path),
-        "content_type": file.content_type,
+        "inserted": result["inserted"],
+        "errors": result["errors"] if result["errors"] else None,
     }
