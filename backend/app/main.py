@@ -1,6 +1,7 @@
 from pathlib import Path
 from fastapi import FastAPI, UploadFile, File, HTTPException, Depends
 from sqlmodel import SQLModel, Session
+from app.routers import sleep, diet, exercise
 
 from app.database import engine, get_session
 from app.models import SleepEntry, DietEntry, ExerciseEntry
@@ -11,6 +12,9 @@ UPLOAD_DIR = Path("uploads")
 UPLOAD_DIR.mkdir(exist_ok=True)
 
 app = FastAPI(title="WellGenie API")
+app.include_router(sleep.router, prefix="/api")
+app.include_router(diet.router, prefix="/api")
+app.include_router(exercise.router, prefix="/api")
 
 # --- Startup
 @app.on_event("startup")
