@@ -1,4 +1,4 @@
-type NavKey = "overview" | "sleep" | "diet" | "exercise";
+type NavKey = "overview" | "sleep" | "diet" | "exercise" | "chatbot";
 
 export default function MobileTabBar({
   current,
@@ -36,6 +36,7 @@ export default function MobileTabBar({
         <Item k="sleep"    label="Sleep"    emoji="🛌" />
         <Item k="diet"     label="Diet"     emoji="🍽️" />
         <Item k="exercise" label="Exercise" emoji="🏃" />
+        <Item k="chatbot"  label="Chatbot"  emoji="🤖" />
       </div>
     </nav>
   );

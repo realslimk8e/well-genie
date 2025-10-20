@@ -9,10 +9,11 @@ import { mockWeek, type WeekRow } from "./lib/data";
 import SleepPanel from "./components/panels/SleepPanel";
 import DietPanel from "./components/panels/DietPanel";
 import ExercisePanel from "./components/panels/ExercisePanel";
+import ChatbotPanel from "./components/panels/ChatbotPanel";
 import SettingsPanel from "./components/panels/SettingsPanel";
 
 
-type NavKey = "overview" | "sleep" | "diet" | "exercise" | "settings";
+type NavKey = "overview" | "sleep" | "diet" | "exercise" | "chatbot" | "settings";
 
 const App: React.FC = () => {
   const [message, setMessage] = useState<string>("");
@@ -82,6 +83,7 @@ const App: React.FC = () => {
                   {tab === "sleep"    && <SleepPanel />}
                   {tab === "diet"     && <DietPanel />}
                   {tab === "exercise" && <ExercisePanel />}
+                  {tab === "chatbot"  && <ChatbotPanel />}
                   {tab === "settings" && <SettingsPanel />}
 
               </div>
@@ -91,7 +93,7 @@ const App: React.FC = () => {
       </main>
 
       <MobileTabBar
-        current={tab === "settings" ? "overview" : (tab as "overview" | "sleep" | "diet" | "exercise")}
+        current={tab === "settings" || tab === "chatbot" ? "overview" : (tab as "overview" | "sleep" | "diet" | "exercise")}
         onNavigate={(k) => setTab(k)}
       />
     </div>
