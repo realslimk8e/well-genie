@@ -1,4 +1,4 @@
-type NavKey = "overview" | "sleep" | "diet" | "exercise" | "settings";
+type NavKey = "overview" | "sleep" | "diet" | "exercise" | "chatbot" |"settings";
 
 export default function Sidebar({
   current,
@@ -12,6 +12,7 @@ export default function Sidebar({
     { key: "sleep",    label: "Sleep",    emoji: "🛌" },
     { key: "diet",     label: "Diet",     emoji: "🍽️" },
     { key: "exercise", label: "Exercise", emoji: "🏃" },
+    { key: "chatbot", label: "Chatbot", emoji: "🤖" },
     { key: "settings", label: "Settings", emoji: "⚙️" },
   ];
 
