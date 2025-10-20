@@ -72,6 +72,7 @@ class IngestService:
             )
         elif category == "diet":
             return DietEntry(
+                date=datetime.strptime(row["date"], "%Y-%m-%d").date(),
                 calories=float(row["calories"]),
                 protein_g=float(row["protein_g"]),
                 carbs_g=float(row["carbs_g"]),
@@ -80,6 +81,7 @@ class IngestService:
         
         elif category == "exercise":
             return ExerciseEntry(
+                date=datetime.strptime(row["date"], "%Y-%m-%d").date(),
                 steps=int(row["steps"]),
                 duration_min=float(row["duration_min"]),
                 calories_burned=float(row["calories_burned"])
