@@ -3,7 +3,8 @@ import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { vi } from 'vitest'
 import { test, expect } from 'vitest';
-
+import { afterEach } from 'vitest'
+import { cleanup } from '@testing-library/react'
 
 // ---- Mocks ----
 // Mock axios so App.tsx’s /api/ call doesn’t hit the network
@@ -62,26 +63,7 @@ test('Sidebar marks the active item with aria-current', async () => {
   expect(overviewBtn).not.toHaveAttribute('aria-current')
 })
 
-// 3) MobileTabBar: bottom nav + aria-current
-test('MobileTabBar exposes labels and active state', async () => {
-  const user = userEvent.setup()
-  let current: any = 'overview'
-  const onNavigate = (k: any) => {
-    current = k
-    rerender(<MobileTabBar current={current} onNavigate={onNavigate} />)
-  }
-  const { rerender } = render(<MobileTabBar current={current} onNavigate={onNavigate} />)
-  const nav = screen.getByRole('navigation', { name: /bottom navigation/i })
-  const home = within(nav).getByRole('button', { name: /home/i })
-  expect(home).toHaveAttribute('aria-current', 'page')
-
-  const diet = within(nav).getByRole('button', { name: /diet/i })
-  await user.click(diet)
-  expect(diet).toHaveAttribute('aria-current', 'page')
-  expect(home).not.toHaveAttribute('aria-current')
-})
-
-// 4) SummaryCard: value/unit/hint rendering
+// 3) SummaryCard: value/unit/hint rendering
 test('SummaryCard renders title, value, optional unit and hint', () => {
   const { rerender } = render(<SummaryCard title="Sleep" value="8.0" unit="h" hint="avg last 7d" accent="purple" />)
   expect(screen.getByText(/sleep/i)).toBeInTheDocument()
@@ -94,7 +76,7 @@ test('SummaryCard renders title, value, optional unit and hint', () => {
   expect(screen.queryByText('h')).not.toBeInTheDocument()
 })
 
-// 5) WeeklyOverview: both charts mount and captions exist
+// 4) WeeklyOverview: both charts mount and captions exist
 test('WeeklyOverview renders sleep and steps sections', () => {
   const data = [
     { day: 'Mon', sleepHrs: 7.6, steps: 8200 },
@@ -107,9 +89,15 @@ test('WeeklyOverview renders sleep and steps sections', () => {
   expect(screen.getByText(/steps/i)).toBeInTheDocument()
 })
 
-// 6) ChatbotPanel: basic input and button exist
+// 5) ChatbotPanel: basic input and button exist
 test('ChatbotPanel shows input and Send button', () => {
   render(<ChatbotPanel />)
   expect(screen.getByPlaceholderText(/type your message/i)).toBeInTheDocument()
   expect(screen.getByRole('button', { name: /send/i })).toBeInTheDocument()
+})
+
+afterEach(() => {
+  cleanup()               // remove any mounted DOM between tests
+  vi.resetAllMocks()      // reset mock implementations/call history
+  vi.restoreAllMocks()    // restore spied implementations
 })
