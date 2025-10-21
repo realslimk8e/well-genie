@@ -15,14 +15,44 @@ import SettingsPanel from "./components/panels/SettingsPanel";
 
 type NavKey = "overview" | "sleep" | "diet" | "exercise" | "chatbot" | "settings";
 
+const allowedTabs: NavKey[] = ["overview", "sleep", "diet", "exercise", "chatbot", "settings"];
+
+const initialTabFromHash = (): NavKey => {
+  if (typeof window === "undefined") return "overview";
+  const raw = (window.location.hash || "").replace(/^#\/?/, "");
+  return (allowedTabs.includes(raw as NavKey) ? (raw as NavKey) : "overview");
+};
+
 const App: React.FC = () => {
   const [message, setMessage] = useState<string>("");
-  const [tab, setTab] = useState<NavKey>("overview"); // <-- active tab
+  // read initial tab from URL hash (e.g. #chatbot). falls back to "overview"
+  const [tab, setTab] = useState<NavKey>(initialTabFromHash);
 
   const week: WeekRow[] = mockWeek;
 
   useEffect(() => {
     axios.get("/api/").then((r) => setMessage(r.data.message)).catch(() => {});
+  }, []);
+
+  // keep URL hash in sync when tab changes (replaceState to avoid extraneous history entries)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const desired = `#${tab}`;
+    if (window.location.hash !== desired) {
+      window.history.replaceState(null, "", desired);
+    }
+  }, [tab]);
+
+  // respond to back/forward and manual hash edits
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const onHashChange = () => {
+      const raw = (window.location.hash || "").replace(/^#\/?/, "");
+      if (allowedTabs.includes(raw as NavKey)) setTab(raw as NavKey);
+      else setTab("overview");
+    };
+    window.addEventListener("hashchange", onHashChange);
+    return () => window.removeEventListener("hashchange", onHashChange);
   }, []);
 
     return (
