@@ -12,16 +12,12 @@ const [password, setPassword] = useState("");
 const [confirm, setConfirm] = useState("");
 const [error, setError] = useState<string | null>(null);
 const [submitting, setSubmitting] = useState(false);
-
 const passwordsMatch = password && confirm && password === confirm;
 const canSubmit = email.trim() !== "" && passwordsMatch;
-
 const handleSubmit = (e: React.FormEvent) => {
 e.preventDefault();
-if (!canSubmit) {
-setError("Please fill in all fields and ensure passwords match.");
-return;
-}
+if (!canSubmit) {setError("Please fill in all fields and ensure passwords match.");
+return;}
 setError(null);
 setSubmitting(true);
 try {
@@ -38,7 +34,6 @@ return (
 <div className="card-body p-8 md:p-10">
 <h1 className="text-3xl md:text-4xl font-bold text-center">Create your account</h1>
 <p className="opacity-70 text-sm md:text-base mb-4 text-center">Join WellGenie</p>
-
 <form className="space-y-5" onSubmit={handleSubmit} noValidate>
 <div className="form-control">
 <label className="label">

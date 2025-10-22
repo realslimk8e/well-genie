@@ -11,22 +11,21 @@ const [email, setEmail] = useState("");
 const [password, setPassword] = useState("");
 const [error, setError] = useState<string | null>(null);
 const [submitting, setSubmitting] = useState(false);
-
 const canSubmit = email.trim() !== "" && password !== "";
-
 const handleSubmit = (e: React.FormEvent) => {
 e.preventDefault();
 if (!canSubmit) {
 setError("Please enter email and password.");
 return;
 }
+
 setError(null);
 setSubmitting(true);
 try {
-localStorage.setItem("wellgenie:authed", "1");
-onLogin?.();
+  localStorage.setItem("wellgenie:authed", "1");
+  onLogin?.();
 } finally {
-setSubmitting(false);
+  setSubmitting(false);
 }
 };
 
@@ -36,7 +35,6 @@ return (
 <div className="card-body p-8 md:p-10">
 <h1 className="text-3xl md:text-4xl font-bold text-center">Welcome back</h1>
 <p className="opacity-70 text-sm md:text-base mb-4 text-center">Sign in to WellGenie</p>
-
 <form className="space-y-5" onSubmit={handleSubmit} noValidate>
 <div className="form-control">
 <label className="label">
