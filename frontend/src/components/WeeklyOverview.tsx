@@ -1,17 +1,22 @@
 import {
   ResponsiveContainer,
-  LineChart, Line, XAxis, YAxis, Tooltip,
-  BarChart, Bar
-} from "recharts";
-import type { WeekRow } from "../lib/data";
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  BarChart,
+  Bar,
+} from 'recharts';
+import type { WeekRow } from '../lib/data';
 
 export default function WeeklyOverview({ data }: { data: WeekRow[] }) {
   return (
-    <div className="card bg-base-100 border border-base-300">
+    <div className="card bg-base-100 border-base-300 border">
       <div className="card-body gap-4">
         <div className="flex items-center justify-between">
           <h3 className="card-title text-base">This Week</h3>
-          <span className="text-xs text-base-content/60">Overview</span>
+          <span className="text-base-content/60 text-xs">Overview</span>
         </div>
 
         <div className="grid gap-6 md:grid-cols-2">
@@ -21,10 +26,17 @@ export default function WeeklyOverview({ data }: { data: WeekRow[] }) {
                 <XAxis dataKey="day" tickLine={false} axisLine={false} />
                 <YAxis hide />
                 <Tooltip />
-                <Line type="monotone" dataKey="sleepHrs" strokeWidth={3} dot={false} />
+                <Line
+                  type="monotone"
+                  dataKey="sleepHrs"
+                  strokeWidth={3}
+                  dot={false}
+                />
               </LineChart>
             </ResponsiveContainer>
-            <div className="mt-1 text-xs text-base-content/60">Sleep, hours</div>
+            <div className="text-base-content/60 mt-1 text-xs">
+              Sleep, hours
+            </div>
           </div>
 
           <div className="h-48">
@@ -33,10 +45,10 @@ export default function WeeklyOverview({ data }: { data: WeekRow[] }) {
                 <XAxis dataKey="day" tickLine={false} axisLine={false} />
                 <YAxis hide />
                 <Tooltip />
-                <Bar dataKey="steps" radius={[8,8,0,0]} />
+                <Bar dataKey="steps" radius={[8, 8, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
-            <div className="mt-1 text-xs text-base-content/60">Steps</div>
+            <div className="text-base-content/60 mt-1 text-xs">Steps</div>
           </div>
         </div>
       </div>

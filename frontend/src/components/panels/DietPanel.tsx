@@ -1,4 +1,4 @@
-import { useDiet } from "../../hooks/useDiet";
+import { useDiet } from '../../hooks/useDiet';
 
 type DietItem = {
   id: number;
@@ -12,9 +12,9 @@ type DietItem = {
 // simple macro-balance score, targets 30% protein, 30% fat, 40% carbs
 function scoreDay(x: DietItem): number {
   const kcal = Math.max(1, x.calories); // avoid div-by-zero
-  const targetP = (kcal * 0.30) / 4;  // grams
-  const targetF = (kcal * 0.30) / 9;  // grams
-  const targetC = (kcal * 0.40) / 4;  // grams
+  const targetP = (kcal * 0.3) / 4; // grams
+  const targetF = (kcal * 0.3) / 9; // grams
+  const targetC = (kcal * 0.4) / 4; // grams
 
   const closeness = (actual: number, target: number) =>
     Math.max(0, 1 - Math.abs(actual - target) / target); // 1.0 = perfect, 0 = far
@@ -33,20 +33,19 @@ export default function DietPanel() {
   const lastScore = last ? scoreDay(last) : null;
 
   const last7 = items.slice(-7) as DietItem[];
-  const avg =
-    last7.length
-      ? Math.round(last7.reduce((s, d) => s + scoreDay(d), 0) / last7.length)
-      : 0;
+  const avg = last7.length
+    ? Math.round(last7.reduce((s, d) => s + scoreDay(d), 0) / last7.length)
+    : 0;
 
   return (
-    <div className="card bg-base-100 border border-base-300">
+    <div className="card bg-base-100 border-base-300 border">
       <div className="card-body">
         <h2 className="card-title">Diet</h2>
 
         {loading && (
           <div className="flex items-center gap-2">
             <span className="loading loading-spinner loading-sm" />
-            <span className="text-sm text-base-content/70">Loading…</span>
+            <span className="text-base-content/70 text-sm">Loading…</span>
           </div>
         )}
 
@@ -57,8 +56,8 @@ export default function DietPanel() {
         )}
 
         {!loading && !error && (
-          <p className="text-sm text-base-content/70">
-            Score, {avg} out of 100, last, {lastScore ?? "n/a"}.
+          <p className="text-base-content/70 text-sm">
+            Score, {avg} out of 100, last, {lastScore ?? 'n/a'}.
           </p>
         )}
       </div>

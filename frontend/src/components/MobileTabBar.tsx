@@ -1,4 +1,4 @@
-type NavKey = "overview" | "sleep" | "diet" | "exercise" | "chatbot";
+type NavKey = 'overview' | 'sleep' | 'diet' | 'exercise' | 'chatbot';
 
 export default function MobileTabBar({
   current,
@@ -7,17 +7,25 @@ export default function MobileTabBar({
   current: NavKey;
   onNavigate: (k: NavKey) => void;
 }) {
-  const Item = ({ k, label, emoji }: { k: NavKey; label: string; emoji: string }) => {
+  const Item = ({
+    k,
+    label,
+    emoji,
+  }: {
+    k: NavKey;
+    label: string;
+    emoji: string;
+  }) => {
     const active = current === k;
     return (
       <button
         type="button"
         onClick={() => onNavigate(k)}
-        className={`flex flex-col items-center gap-1 px-3 py-2 rounded-xl ${
-          active ? "bg-base-200" : "hover:bg-base-200"
+        className={`flex flex-col items-center gap-1 rounded-xl px-3 py-2 ${
+          active ? 'bg-base-200' : 'hover:bg-base-200'
         }`}
         aria-label={label}
-        aria-current={active ? "page" : undefined}
+        aria-current={active ? 'page' : undefined}
       >
         <span className="text-lg leading-none">{emoji}</span>
         <span className="text-[11px] leading-none">{label}</span>
@@ -27,16 +35,16 @@ export default function MobileTabBar({
 
   return (
     <nav
-      className="md:hidden fixed bottom-0 inset-x-0 z-30 bg-base-100 border-t border-base-300"
+      className="bg-base-100 border-base-300 fixed inset-x-0 bottom-0 z-30 border-t md:hidden"
       role="navigation"
       aria-label="Bottom navigation"
     >
       <div className="flex justify-around py-2">
-        <Item k="overview" label="Home"     emoji="🏠" />
-        <Item k="sleep"    label="Sleep"    emoji="🛌" />
-        <Item k="diet"     label="Diet"     emoji="🍽️" />
+        <Item k="overview" label="Home" emoji="🏠" />
+        <Item k="sleep" label="Sleep" emoji="🛌" />
+        <Item k="diet" label="Diet" emoji="🍽️" />
         <Item k="exercise" label="Exercise" emoji="🏃" />
-        <Item k="chatbot"  label="Chatbot"  emoji="🤖" />
+        <Item k="chatbot" label="Chatbot" emoji="🤖" />
       </div>
     </nav>
   );
