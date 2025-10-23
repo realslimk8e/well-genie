@@ -13,6 +13,8 @@ import SettingsPanel from "./components/panels/SettingsPanel";
 import Login from "./assets/login";
 import SignUp from "./assets/Signup";
 import ImportPage from "./assets/import";
+import ApiPing from "./components/ApiPing";
+import { useSleep } from "./hooks/useSleep";
 
 type NavKey =
   | "overview"
@@ -48,6 +50,14 @@ const App: React.FC = () => {
   const [authView, setAuthView] = useState<"login" | "signup">("login");
 
   const week: WeekRow[] = mockWeek;
+
+  // real sleep data
+const { items: sleepItems, loading: sleepLoading, error: sleepError } = useSleep();
+const last7 = sleepItems.slice(-7);
+const sleepAvg =
+  last7.length
+    ? (last7.reduce((s, i) => s + i.hours, 0) / last7.length).toFixed(1)
+    : "0.0";
 
   useEffect(() => {
     axios
@@ -132,62 +142,34 @@ const App: React.FC = () => {
           </div>
 
           {tab === "overview" && (
-            <>
-              <section className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <SummaryCard
-                  title="Sleep"
-                  value="8.0"
-                  unit="h"
-                  hint="avg last 7d"
-                  accent="purple"
-                />
-                <SummaryCard
-                  title="Diet"
-                  value="72"
-                  unit="/100"
-                  hint="quality score"
-                  accent="green"
-                />
-                <SummaryCard
-                  title="Exercise"
-                  value="56"
-                  unit="min"
-                  hint="today"
-                  accent="pink"
-                />
-              </section>
+  <>
+    <section className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <SummaryCard
+        title="Sleep"
+        value={sleepLoading ? "…" : sleepAvg}
+        unit="h"
+        hint={sleepError ? "error loading" : "avg last 7d"}
+        accent="purple"
+      />
+      <SummaryCard
+        title="Diet"
+        value="72"
+        unit="/100"
+        hint="quality score"
+        accent="green"
+      />
+      <SummaryCard
+        title="Exercise"
+        value="56"
+        unit="min"
+        hint="today"
+        accent="pink"
+      />
+    </section>
+  </>
+)}
 
-              <WeeklyOverview data={week} />
-
-              <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="card bg-base-100 border border-base-300">
-                  <div className="card-body py-4 px-4">
-                    <h3 className="card-title text-base">Sleep</h3>
-                    <p className="text-sm text-base-content/70">
-                      Avg 8.0 h, best Sat
-                    </p>
-                  </div>
-                </div>
-                <div className="card bg-base-100 border border-base-300">
-                  <div className="card-body py-4 px-4">
-                    <h3 className="card-title text-base">Diet</h3>
-                    <p className="text-sm text-base-content/70">
-                      Protein on track, fiber low
-                    </p>
-                  </div>
-                </div>
-                <div className="card bg-base-100 border border-base-300">
-                  <div className="card-body py-4 px-4">
-                    <h3 className="card-title text-base">Exercise</h3>
-                    <p className="text-sm text-base-content/70">
-                      3 of 4 sessions done
-                    </p>
-                  </div>
-                </div>
-              </section>
-            </>
-          )}
-
+<WeeklyOverview data={week} />
           {tab !== "overview" && (
             <div className="card bg-base-100 border border-base-300">
               <div className="card-body">
