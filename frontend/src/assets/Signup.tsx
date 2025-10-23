@@ -98,16 +98,20 @@ export default function SignUp({
             )}
 
             <button
-              className={`btn mt-2 w-full font-semibold transition-all duration-300 ${
-                canSubmit
-                  ? 'bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 text-white shadow-lg hover:scale-[1.02] hover:shadow-xl'
-                  : 'cursor-not-allowed bg-gray-400 text-gray-200'
-              }`}
-              type="submit"
-              disabled={!canSubmit || submitting}
-            >
-              {submitting ? 'Creating...' : 'Create account'}
-            </button>
+  className="btn btn-primary w-full"
+  type="submit"
+  disabled={!canSubmit || submitting}
+>
+  {submitting ? (
+    <>
+      <span className="loading loading-spinner loading-sm" />
+      Creating…
+    </>
+  ) : (
+    "Create account"
+  )}
+</button>
+
           </form>
 
           <div className="mt-6 text-center text-sm">
