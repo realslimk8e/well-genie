@@ -13,8 +13,9 @@ import SettingsPanel from "./components/panels/SettingsPanel";
 import Login from "./assets/login";
 import SignUp from "./assets/Signup";
 import ImportPage from "./assets/import";
-import ApiPing from "./components/ApiPing";
 import { useSleep } from "./hooks/useSleep";
+import { useDiet } from "./hooks/useDiet";
+import { useExercise } from "./hooks/useExercise";
 
 type NavKey =
   | "overview"
@@ -58,6 +59,47 @@ const sleepAvg =
   last7.length
     ? (last7.reduce((s, i) => s + i.hours, 0) / last7.length).toFixed(1)
     : "0.0";
+
+// real diet data
+const { items: dietItems, loading: dietLoading, error: dietError } = useDiet();
+
+type DietItem = {
+  id: number;
+  date: string;
+  calories: number;
+  protein_g: number;
+  fat_g: number;
+  carbs_g: number;
+};
+
+function scoreDay(x: DietItem): number {
+  const kcal = Math.max(1, x.calories);
+  const targetP = (kcal * 0.30) / 4;
+  const targetF = (kcal * 0.30) / 9;
+  const targetC = (kcal * 0.40) / 4;
+
+  const closeness = (actual: number, target: number) =>
+    Math.max(0, 1 - Math.abs(actual - target) / target);
+
+  const p = closeness(x.protein_g ?? 0, targetP);
+  const f = closeness(x.fat_g ?? 0, targetF);
+  const c = closeness(x.carbs_g ?? 0, targetC);
+
+  return Math.round(((p + f + c) / 3) * 100);
+}
+
+const dietLast7 = (dietItems as DietItem[]).slice(-7);
+const dietAvg = dietLast7.length
+  ? Math.round(dietLast7.reduce((s, d) => s + scoreDay(d), 0) / dietLast7.length).toString()
+  : "0";
+// real exercise data
+  const { items: exItems, loading: exLoading, error: exError } = useExercise();
+const exToday = exItems.length
+  ? (Number(exItems.at(-1)?.minutes
+      ?? exItems.at(-1)?.duration_min
+      ?? exItems.at(-1)?.duration
+      ?? 0))
+  : 0;
 
   useEffect(() => {
     axios
@@ -153,18 +195,20 @@ const sleepAvg =
       />
       <SummaryCard
         title="Diet"
-        value="72"
+        value={dietLoading ? "…" : dietAvg}
         unit="/100"
-        hint="quality score"
+        hint={dietError ? "error loading" : "quality score"}
         accent="green"
       />
+
       <SummaryCard
         title="Exercise"
-        value="56"
+        value={exLoading ? "…" : String(exToday)}
         unit="min"
-        hint="today"
+        hint={exError ? "error loading" : "today"}
         accent="pink"
       />
+
     </section>
   </>
 )}
