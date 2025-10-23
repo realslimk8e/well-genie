@@ -13,6 +13,9 @@ import SettingsPanel from "./components/panels/SettingsPanel";
 import Login from "./assets/login";
 import SignUp from "./assets/Signup";
 import ImportPage from "./assets/import";
+import { useSleep } from "./hooks/useSleep";
+import { useDiet } from "./hooks/useDiet";
+import { useExercise } from "./hooks/useExercise";
 
 type NavKey =
   | "overview"
@@ -48,6 +51,55 @@ const App: React.FC = () => {
   const [authView, setAuthView] = useState<"login" | "signup">("login");
 
   const week: WeekRow[] = mockWeek;
+
+  // real sleep data
+const { items: sleepItems, loading: sleepLoading, error: sleepError } = useSleep();
+const last7 = sleepItems.slice(-7);
+const sleepAvg =
+  last7.length
+    ? (last7.reduce((s, i) => s + i.hours, 0) / last7.length).toFixed(1)
+    : "0.0";
+
+// real diet data
+const { items: dietItems, loading: dietLoading, error: dietError } = useDiet();
+
+type DietItem = {
+  id: number;
+  date: string;
+  calories: number;
+  protein_g: number;
+  fat_g: number;
+  carbs_g: number;
+};
+
+function scoreDay(x: DietItem): number {
+  const kcal = Math.max(1, x.calories);
+  const targetP = (kcal * 0.30) / 4;
+  const targetF = (kcal * 0.30) / 9;
+  const targetC = (kcal * 0.40) / 4;
+
+  const closeness = (actual: number, target: number) =>
+    Math.max(0, 1 - Math.abs(actual - target) / target);
+
+  const p = closeness(x.protein_g ?? 0, targetP);
+  const f = closeness(x.fat_g ?? 0, targetF);
+  const c = closeness(x.carbs_g ?? 0, targetC);
+
+  return Math.round(((p + f + c) / 3) * 100);
+}
+
+const dietLast7 = (dietItems as DietItem[]).slice(-7);
+const dietAvg = dietLast7.length
+  ? Math.round(dietLast7.reduce((s, d) => s + scoreDay(d), 0) / dietLast7.length).toString()
+  : "0";
+// real exercise data
+  const { items: exItems, loading: exLoading, error: exError } = useExercise();
+const exToday = exItems.length
+  ? (Number(exItems.at(-1)?.minutes
+      ?? exItems.at(-1)?.duration_min
+      ?? exItems.at(-1)?.duration
+      ?? 0))
+  : 0;
 
   useEffect(() => {
     axios
@@ -132,62 +184,36 @@ const App: React.FC = () => {
           </div>
 
           {tab === "overview" && (
-            <>
-              <section className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <SummaryCard
-                  title="Sleep"
-                  value="8.0"
-                  unit="h"
-                  hint="avg last 7d"
-                  accent="purple"
-                />
-                <SummaryCard
-                  title="Diet"
-                  value="72"
-                  unit="/100"
-                  hint="quality score"
-                  accent="green"
-                />
-                <SummaryCard
-                  title="Exercise"
-                  value="56"
-                  unit="min"
-                  hint="today"
-                  accent="pink"
-                />
-              </section>
+  <>
+    <section className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <SummaryCard
+        title="Sleep"
+        value={sleepLoading ? "…" : sleepAvg}
+        unit="h"
+        hint={sleepError ? "error loading" : "avg last 7d"}
+        accent="purple"
+      />
+      <SummaryCard
+        title="Diet"
+        value={dietLoading ? "…" : dietAvg}
+        unit="/100"
+        hint={dietError ? "error loading" : "quality score"}
+        accent="green"
+      />
 
-              <WeeklyOverview data={week} />
+      <SummaryCard
+        title="Exercise"
+        value={exLoading ? "…" : String(exToday)}
+        unit="min"
+        hint={exError ? "error loading" : "today"}
+        accent="pink"
+      />
 
-              <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="card bg-base-100 border border-base-300">
-                  <div className="card-body py-4 px-4">
-                    <h3 className="card-title text-base">Sleep</h3>
-                    <p className="text-sm text-base-content/70">
-                      Avg 8.0 h, best Sat
-                    </p>
-                  </div>
-                </div>
-                <div className="card bg-base-100 border border-base-300">
-                  <div className="card-body py-4 px-4">
-                    <h3 className="card-title text-base">Diet</h3>
-                    <p className="text-sm text-base-content/70">
-                      Protein on track, fiber low
-                    </p>
-                  </div>
-                </div>
-                <div className="card bg-base-100 border border-base-300">
-                  <div className="card-body py-4 px-4">
-                    <h3 className="card-title text-base">Exercise</h3>
-                    <p className="text-sm text-base-content/70">
-                      3 of 4 sessions done
-                    </p>
-                  </div>
-                </div>
-              </section>
-            </>
-          )}
+    </section>
+  </>
+)}
 
+<WeeklyOverview data={week} />
           {tab !== "overview" && (
             <div className="card bg-base-100 border border-base-300">
               <div className="card-body">
