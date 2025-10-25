@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import Sidebar from './components/Sidebar';
 import MobileTabBar from './components/MobileTabBar';
-import QuickStatsCard from "./components/QuickStatsCard";
+import QuickStatsCard from './components/QuickStatsCard';
 import SleepPanel from './components/panels/SleepPanel';
 import DietPanel from './components/panels/DietPanel';
 import ExercisePanel from './components/panels/ExercisePanel';
@@ -18,7 +18,6 @@ import MetricTile from './components/tiles/MetricTile';
 import GaugeTile from './components/tiles/GaugeTile';
 import ListPercentTile from './components/tiles/ListPercentTile';
 import BannerTile from './components/tiles/BannerTile';
-
 
 type NavKey =
   | 'overview'
@@ -49,11 +48,11 @@ const App: React.FC = () => {
   const [message, setMessage] = useState<string>('');
   const [tab, setTab] = useState<NavKey>(initialTabFromHash);
   const [authed, setAuthed] = useState<boolean>(
-    !!localStorage.getItem('wellgenie:authed'),
+    !!localStorage.getItem('wellgenie:authed')
   );
   const [authView, setAuthView] = useState<'login' | 'signup'>('login');
 
-  // hook calls for data
+  // Hook calls for data
   const {
     items: sleepItems,
     loading: sleepLoading,
@@ -69,49 +68,60 @@ const App: React.FC = () => {
   const { items: exItems, loading: exLoading, error: exError } = useExercise();
 
   // ---------- Sleep metrics (7d) ----------
-const sleepLast7 = sleepItems.slice(-7);
-const sleepAvgHours = sleepLast7.length
-  ? (sleepLast7.reduce((s, r: any) => s + (r?.hours ?? 0), 0) / sleepLast7.length).toFixed(1)
-  : "0.0";
+  const sleepLast7 = sleepItems.slice(-7);
+  const sleepAvgHours = sleepLast7.length
+    ? (
+        sleepLast7.reduce((s, r: any) => s + (r?.hours ?? 0), 0) /
+        sleepLast7.length
+      ).toFixed(1)
+    : '0.0';
 
-type SleepQuality = "excellent" | "good" | "fair" | "poor";
-const q2s: Record<SleepQuality, number> = { excellent: 4, good: 3, fair: 2, poor: 1 };
-const s2q = (n: number): SleepQuality =>
-  n >= 3.5 ? "excellent" : n >= 2.5 ? "good" : n >= 1.5 ? "fair" : "poor";
+  type SleepQuality = 'excellent' | 'good' | 'fair' | 'poor';
+  const q2s: Record<SleepQuality, number> = {
+    excellent: 4,
+    good: 3,
+    fair: 2,
+    poor: 1,
+  };
+  const s2q = (n: number): SleepQuality =>
+    n >= 3.5 ? 'excellent' : n >= 2.5 ? 'good' : n >= 1.5 ? 'fair' : 'poor';
 
-const sleepAvgQScore = sleepLast7.length
-  ? sleepLast7.reduce((s, r: any) => s + (q2s[(r?.quality as SleepQuality) ?? "poor"] ?? 0), 0) /
-    sleepLast7.length
-  : 0;
-const sleepAvgQuality = s2q(sleepAvgQScore);
+  const sleepAvgQScore = sleepLast7.length
+    ? sleepLast7.reduce(
+        (s, r: any) =>
+          s + (q2s[(r?.quality as SleepQuality) ?? 'poor'] ?? 0),
+        0
+      ) / sleepLast7.length
+    : 0;
+  const sleepAvgQuality = s2q(sleepAvgQScore);
 
-// ---------- Nutrition metrics (7d averages) ----------
-type DietItem = {
-  id: number;
-  date: string;
-  calories: number;
-  protein_g: number;
-  fat_g: number;
-  carbs_g: number;
-};
-const dietLast7 = (dietItems as DietItem[]).slice(-7);
-const avgNum = (arr: any[], pick: (x: any) => number) =>
-  arr.length ? Math.round(arr.reduce((s, x) => s + pick(x), 0) / arr.length) : 0;
+  // ---------- Nutrition metrics (7d averages) ----------
+  type DietItem = {
+    id: number;
+    date: string;
+    calories: number;
+    protein_g: number;
+    fat_g: number;
+    carbs_g: number;
+  };
+  const dietLast7 = dietItems.slice(-7);
+  const avgNum = (arr: any[], pick: (x: any) => number) =>
+    arr.length ? Math.round(arr.reduce((s, x) => s + pick(x), 0) / arr.length) : 0;
 
-const avgProtein = avgNum(dietLast7, d => Number(d?.protein_g ?? 0));
-const avgCarbs   = avgNum(dietLast7, d => Number(d?.carbs_g   ?? 0));
-const avgFat     = avgNum(dietLast7, d => Number(d?.fat_g     ?? 0));
-const avgCals    = avgNum(dietLast7, d => Number(d?.calories  ?? 0));
+  const avgProtein = avgNum(dietLast7, (d) => Number(d?.protein_g ?? 0));
+  const avgCarbs = avgNum(dietLast7, (d) => Number(d?.carbs_g ?? 0));
+  const avgFat = avgNum(dietLast7, (d) => Number(d?.fat_g ?? 0));
+  const avgCals = avgNum(dietLast7, (d) => Number(d?.calories ?? 0));
 
-// ---------- Exercise & Steps (today + 7d avg) ----------
-const exLast7 = exItems.slice(-7);
-const getMin   = (x: any) => Number(x?.minutes ?? x?.duration_min ?? x?.duration ?? 0);
-const getSteps = (x: any) => Number(x?.steps ?? 0);
+  // ---------- Exercise & Steps (today + 7d avg) ----------
+  const exLast7 = exItems.slice(-7);
+  const getMin = (x: any) =>
+    Number(x?.minutes ?? x?.duration_min ?? x?.duration ?? 0);
+  const getSteps = (x: any) => Number(x?.steps ?? 0);
 
-const exToday = exItems.length ? getMin(exItems.at(-1)) : 0;
-const exAvgMin  = avgNum(exLast7, getMin);
-const stepsAvg7 = avgNum(exLast7, getSteps);
-
+  const exToday = exItems.length ? getMin(exItems.at(-1)) : 0;
+  const exAvgMin = avgNum(exLast7, getMin);
+  const stepsAvg7 = avgNum(exLast7, getSteps);
 
   useEffect(() => {
     axios
@@ -157,7 +167,7 @@ const stepsAvg7 = avgNum(exLast7, getSteps);
 
   if (!authed) {
     return (
-      <div className="bg-base-200 flex min-h-screen items-center justify-center p-4">
+      <div className="flex min-h-screen items-center justify-center bg-base-200 p-4">
         <div className="w-full max-w-md">
           {authView === 'login' ? (
             <Login
@@ -176,78 +186,96 @@ const stepsAvg7 = avgNum(exLast7, getSteps);
   }
 
   return (
-    <div className="bg-base-200 min-h-screen">
+    <div className="min-h-screen bg-base-200">
       <Sidebar current={tab} onNavigate={setTab} />
 
       <main className="pb-[max(4rem,env(safe-area-inset-bottom))] pl-16 md:pb-0 md:pl-64">
         <div className="mx-auto max-w-5xl space-y-6 p-4 md:p-6">
+          {/* Header Section */}
           <div className="space-y-2 text-center">
-            <h1 className="text-3xl md:text-4xl font-bold text-primary">
-  WellGenie Dashboard
-</h1>
-<div className="mt-2">
-  <button className="btn btn-primary btn-sm" onClick={handleLogout}>
-  Log out
-</button>
-
-</div>
-
+            <h1 className="text-3xl font-bold text-primary md:text-4xl">
+              WellGenie Dashboard
+            </h1>
+            <div className="mt-2">
+              <button className="btn btn-primary btn-sm" onClick={handleLogout}>
+                Log out
+              </button>
+            </div>
           </div>
 
+          {/* Overview Tab */}
           {tab === 'overview' && (
             <>
-              <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
-  <MetricTile
-    title="Avg Sleep (7d)"
-    value={sleepLoading ? "…" : sleepAvgHours}
-    unit="h"
-    delta="+0.2%"
-    deltaTone="up"
-    bars={[60,62,58,65,70,68,64]} // optional
-  />
-  <MetricTile
-  title="Avg Calories (7d)"
-  value={dietLoading ? "…" : avgCals}
-  unit="kcal"
-  delta="+110"
-  deltaTone="up"
-  bars={[50,55,60,58,62,64,66]}
-/>
+              {/* Metric Tiles */}
+              <section className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                <MetricTile
+                  title="Avg Sleep (7d)"
+                  value={sleepLoading ? '…' : sleepAvgHours}
+                  unit="h"
+                  delta="+0.2%"
+                  deltaTone="up"
+                  bars={[60, 62, 58, 65, 70, 68, 64]}
+                />
+                <MetricTile
+                  title="Avg Calories (7d)"
+                  value={dietLoading ? '…' : avgCals}
+                  unit="kcal"
+                  delta="+110"
+                  deltaTone="up"
+                  bars={[50, 55, 60, 58, 62, 64, 66]}
+                />
+                <MetricTile
+                  title="Exercise Today"
+                  value={exLoading ? '…' : exToday}
+                  unit="min"
+                  delta="+12m"
+                  deltaTone="up"
+                  bars={[20, 35, 40, 60, 70, 55, 80]}
+                />
+              </section>
 
-  <MetricTile
-    title="Exercise Today"
-    value={exLoading ? "…" : exToday}
-    unit="min"
-    delta="+12m"
-    deltaTone="up"
-    bars={[20,35,40,60,70,55,80]}
-  />
-</section>
-
-<section className="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-4">
-  <GaugeTile
-    title="Sleep Quality"
-    percent={Math.round((sleepAvgQScore / 4) * 100)}
-    subtitle="7-day average"
-    tone="success"
-  />
-  <ListPercentTile
-    title="Macros split (7d avg)"
-    rows={[
-      { label: "Protein", value: Math.min(100, Math.round((avgProtein*4 / (avgCals||1))*100)) },
-      { label: "Fat",     value: Math.min(100, Math.round((avgFat*9    / (avgCals||1))*100)) },
-      { label: "Carbs",   value: Math.min(100, Math.round((avgCarbs*4  / (avgCals||1))*100)) },
-    ]}
-  />
-  <BannerTile />
-</section>
-
-
+              {/* Detail Tiles */}
+              <section className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
+                <GaugeTile
+                  title="Sleep Quality"
+                  percent={Math.round((sleepAvgQScore / 4) * 100)}
+                  subtitle="7-day average"
+                  tone="success"
+                />
+                <ListPercentTile
+                  title="Macros split (7d avg)"
+                  rows={[
+                    {
+                      label: 'Protein',
+                      value: Math.min(
+                        100,
+                        Math.round(((avgProtein * 4) / (avgCals || 1)) * 100)
+                      ),
+                    },
+                    {
+                      label: 'Fat',
+                      value: Math.min(
+                        100,
+                        Math.round(((avgFat * 9) / (avgCals || 1)) * 100)
+                      ),
+                    },
+                    {
+                      label: 'Carbs',
+                      value: Math.min(
+                        100,
+                        Math.round(((avgCarbs * 4) / (avgCals || 1)) * 100)
+                      ),
+                    },
+                  ]}
+                />
+                <BannerTile />
+              </section>
             </>
           )}
 
+          {/* Other Tabs */}
           {tab !== 'overview' && (
-            <div className="card bg-base-100 border-base-300 border">
+            <div className="card border border-base-300 bg-base-100">
               <div className="card-body">
                 <h2 className="card-title capitalize">{tab}</h2>
                 {tab === 'sleep' && <SleepPanel />}
@@ -268,6 +296,7 @@ const stepsAvg7 = avgNum(exLast7, getSteps);
         </div>
       </main>
 
+      {/* Mobile Navigation */}
       <MobileTabBar
         current={
           tab === 'settings' || tab === 'chatbot'
