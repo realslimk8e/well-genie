@@ -7,7 +7,7 @@ afterEach(() => cleanup());
 
 describe('SignUp', () => {
   beforeEach(() => {
-    cleanup(); 
+    cleanup();
     localStorage.clear();
     vi.restoreAllMocks();
   });
@@ -25,7 +25,9 @@ describe('SignUp', () => {
     await user.type(passwordInput, 'abc12345');
     await user.type(confirmInput, 'different123');
 
-    expect(await screen.findByText(/passwords do not match/i)).toBeInTheDocument();
+    expect(
+      await screen.findByText(/passwords do not match/i),
+    ).toBeInTheDocument();
     expect(submitButton).toBeDisabled();
   });
 

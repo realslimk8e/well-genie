@@ -37,14 +37,20 @@ describe('ImportPage', () => {
     });
     invalidCsv._mockText = 'foo,bar,baz,qux\n1,2,3,4\n';
 
-    const input = document.querySelector('input[type="file"]') as HTMLInputElement;
+    const input = document.querySelector(
+      'input[type="file"]',
+    ) as HTMLInputElement;
     expect(input).toBeTruthy();
 
     await act(async () => {
       await user.upload(input, invalidCsv);
     });
 
-    const errorToast = await screen.findByText(/import failed:/i, {}, { timeout: 3000 });
+    const errorToast = await screen.findByText(
+      /import failed:/i,
+      {},
+      { timeout: 3000 },
+    );
     expect(errorToast).toHaveTextContent(/missing required headers/i);
     expect(onImported).not.toHaveBeenCalled();
   });
@@ -62,14 +68,20 @@ describe('ImportPage', () => {
     const validCsv = new File([csvText], 'valid.csv', { type: 'text/csv' });
     validCsv._mockText = csvText;
 
-    const input = document.querySelector('input[type="file"]') as HTMLInputElement;
+    const input = document.querySelector(
+      'input[type="file"]',
+    ) as HTMLInputElement;
     expect(input).toBeTruthy();
 
     await act(async () => {
       await user.upload(input, validCsv);
     });
 
-    const successToast = await screen.findByText(/rows imported/i, {}, { timeout: 3000 });
+    const successToast = await screen.findByText(
+      /rows imported/i,
+      {},
+      { timeout: 3000 },
+    );
     expect(successToast).toHaveTextContent('2 rows imported, 0 skipped.');
     expect(onImported).toHaveBeenCalledWith(2, 0);
   });

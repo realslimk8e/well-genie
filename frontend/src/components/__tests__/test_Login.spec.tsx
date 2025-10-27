@@ -8,7 +8,7 @@ afterEach(() => cleanup());
 
 describe('Login', () => {
   beforeEach(() => {
-    cleanup(); 
+    cleanup();
     localStorage.clear();
     vi.restoreAllMocks();
   });
@@ -39,7 +39,10 @@ describe('Login', () => {
 
     render(<Login onLogin={onLogin} />);
 
-    await user.type(screen.getByRole('textbox', { name: /email/i }), 'user@wellgenie.dev');
+    await user.type(
+      screen.getByRole('textbox', { name: /email/i }),
+      'user@wellgenie.dev',
+    );
     await user.type(screen.getByLabelText(/password/i), 'password123');
 
     const submit = screen.getByRole('button', { name: /^sign in$/i });
