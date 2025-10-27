@@ -11,7 +11,9 @@ export default function Login({
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
   const canSubmit = email.trim() !== '' && password !== '';
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!canSubmit) {
@@ -39,12 +41,16 @@ export default function Login({
           <p className="mb-4 text-center text-sm opacity-70 md:text-base">
             Sign in to WellGenie
           </p>
+
           <form className="space-y-5" onSubmit={handleSubmit} noValidate>
+            {/* Email Field */}
             <div className="form-control">
-              <label className="label">
+              <label className="label" htmlFor="email">
                 <span className="label-text font-medium">Email</span>
               </label>
               <input
+                id="email"
+                data-testid="email"
                 type="email"
                 className="input input-bordered w-full"
                 placeholder="you@wellgenie.dev"
@@ -55,11 +61,14 @@ export default function Login({
               />
             </div>
 
+            {/* Password Field */}
             <div className="form-control">
-              <label className="label">
+              <label className="label" htmlFor="password">
                 <span className="label-text font-medium">Password</span>
               </label>
               <input
+                id="password"
+                data-testid="password"
                 type="password"
                 className="input input-bordered w-full"
                 placeholder="••••••••"
@@ -69,30 +78,34 @@ export default function Login({
               />
             </div>
 
+            {/* Error message */}
             {error && (
               <div className="text-error text-center text-sm">{error}</div>
             )}
 
+            {/* Submit Button */}
             <button
-  className="btn btn-primary w-full"
-  type="submit"
-  disabled={!canSubmit || submitting}
->
-  {submitting ? (
-    <>
-      <span className="loading loading-spinner loading-sm"></span>
-      Signing in…
-    </>
-  ) : (
-    "Sign in"
-  )}
-</button>
-
+              data-testid="login-submit"
+              className="btn btn-primary w-full"
+              type="submit"
+              disabled={!canSubmit || submitting}
+            >
+              {submitting ? (
+                <>
+                  <span className="loading loading-spinner loading-sm"></span>
+                  Signing in…
+                </>
+              ) : (
+                'Sign in'
+              )}
+            </button>
           </form>
 
+          {/* Footer */}
           <div className="mt-6 text-center text-sm">
             <span className="opacity-70">Don’t have an account?</span>{' '}
             <button
+              type="button"
               className="link link-primary"
               onClick={() => onShowSignUp?.()}
             >
