@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from sqlmodel import SQLModel
-from app.routers import sleep, diet, exercise, upload
+from app.routers import sleep, diet, exercise, upload, auth
 from contextlib import asynccontextmanager
 from app.database import engine
 
@@ -22,6 +22,7 @@ app.include_router(sleep.router, prefix="/api")
 app.include_router(diet.router, prefix="/api")
 app.include_router(exercise.router, prefix="/api")
 app.include_router(upload.router)
+app.include_router(auth.router)
 
 # --- Routes
 @app.get("/")

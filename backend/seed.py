@@ -5,7 +5,14 @@ Run this to populate your database with sample data for testing
 from datetime import date, timedelta
 from sqlmodel import Session, select
 from app.database import engine
-from app.models import SleepEntry, DietEntry, ExerciseEntry, SQLModel
+from app.models import SleepEntry, DietEntry, ExerciseEntry, User, SQLModel
+from passlib.context import CryptContext
+
+# Password hashing
+pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
+
+def get_password_hash(password: str) -> str:
+    return pwd_context.hash(password)
 
 
 def create_tables():
@@ -26,9 +33,35 @@ def clear_existing_data(session: Session):
         session.delete(entry)
     for entry in session.exec(select(ExerciseEntry)).all():
         session.delete(entry)
+    for user in session.exec(select(User)).all():
+        session.delete(user)
     
     session.commit()
     print("✅ Existing data cleared")
+
+
+def seed_user(session: Session):
+    """Create initial user account"""
+    print("\nSeeding user data...")
+    
+    # Check if user already exists
+    existing_user = session.exec(select(User).where(User.username == "admin")).first()
+    
+    if existing_user:
+        print("⚠️  User 'admin' already exists, skipping...")
+        return
+    
+    # Create admin user
+    user = User(
+        username="admin",
+        hashed_password=get_password_hash("123"),  # Change this password!
+        email="admin@wellgenie.com"
+    )
+    session.add(user)
+    session.commit()
+    
+    print("✅ Created user 'admin' with password 'wellgenie'")
+    print("⚠️  IMPORTANT: Change this password in production!")
 
 
 def seed_sleep_data(session: Session):
@@ -122,13 +155,21 @@ def verify_data(session: Session):
     print("DATA VERIFICATION")
     print("="*50)
     
+    user_count = len(session.exec(select(User)).all())
     sleep_count = len(session.exec(select(SleepEntry)).all())
     diet_count = len(session.exec(select(DietEntry)).all())
     exercise_count = len(session.exec(select(ExerciseEntry)).all())
     
+    print(f"Users: {user_count}")
     print(f"Sleep entries: {sleep_count}")
     print(f"Diet entries: {diet_count}")
     print(f"Exercise entries: {exercise_count}")
+    
+    # Show user info
+    print("\n👤 User Account:")
+    for user in session.exec(select(User)).all():
+        print(f"  Username: {user.username}")
+        print(f"  Email: {user.email}")
     
     # Show sample data
     print("\n📊 Sample Sleep Entries:")
@@ -144,7 +185,7 @@ def verify_data(session: Session):
         print(f"  {entry.date}: {entry.steps} steps, {entry.duration_min} min")
 
 
-def main(clear_data: bool = None):
+def main(clear_data: bool | None = None):
     """
     Main seeding function
     
@@ -161,13 +202,15 @@ def main(clear_data: bool = None):
     # Seed data
     with Session(engine) as session:
         # Check if there's existing data
+        existing_users = len(session.exec(select(User)).all())
         existing_sleep = len(session.exec(select(SleepEntry)).all())
         existing_diet = len(session.exec(select(DietEntry)).all())
         existing_exercise = len(session.exec(select(ExerciseEntry)).all())
-        total_existing = existing_sleep + existing_diet + existing_exercise
+        total_existing = existing_users + existing_sleep + existing_diet + existing_exercise
         
         if total_existing > 0:
             print(f"\n⚠️  Found existing data:")
+            print(f"   - Users: {existing_users}")
             print(f"   - Sleep entries: {existing_sleep}")
             print(f"   - Diet entries: {existing_diet}")
             print(f"   - Exercise entries: {existing_exercise}")
@@ -183,7 +226,8 @@ def main(clear_data: bool = None):
             else:
                 print("⚠️  Keeping existing data. New data will be added.")
         
-        # Seed all data
+        # Seed all data (user first!)
+        seed_user(session)
         seed_sleep_data(session)
         seed_diet_data(session)
         seed_exercise_data(session)
@@ -194,7 +238,9 @@ def main(clear_data: bool = None):
     print("\n" + "="*50)
     print("✅ Seeding complete!")
     print("="*50)
-
+    print("\n🔐 Login credentials:")
+    print("   Username: admin")
+    print("   Password: 123")
 
 if __name__ == "__main__":
     main()
