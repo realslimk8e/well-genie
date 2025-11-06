@@ -21,3 +21,9 @@ class DietEntry(SQLModel, table=True):
     protein_g: float
     carbs_g: float
     fat_g: float
+
+class User(SQLModel, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    username: str
+    hashed_password: str
+    email: str | None = None
