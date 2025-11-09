@@ -1,5 +1,5 @@
 import pytest
-from app.services.auth import verify_password, get_password_hash
+from services.auth import verify_password, get_password_hash
 
 def test_get_password_hash():
     password = "securepassword"

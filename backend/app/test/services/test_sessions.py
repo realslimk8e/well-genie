@@ -26,7 +26,8 @@ def test_get_session_expired():
     token = create_session(TEST_USER_ID)
     # Simulate expiration
     session = get_session(token)
-    session["expires_at"] = datetime.now() - timedelta(minutes=1)
+    if session:  # Ensure session is not None
+        session["expires_at"] = datetime.now() - timedelta(minutes=1)
 
     expired_session = get_session(token)
     assert expired_session is None
