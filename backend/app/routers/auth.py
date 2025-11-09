@@ -1,26 +1,24 @@
-from fastapi import APIRouter, Depends, Response, Cookie, HTTPException, status
-from fastapi.security import HTTPBasic, HTTPBasicCredentials
+from fastapi import APIRouter, Depends, Response, Cookie, HTTPException, status, Request
 from sqlmodel import Session, select
 from typing import Annotated, Optional
-from app.database import get_session
+import base64
+from app.database import get_session as get_db_session
 from app.models import User
 from app.services.auth import verify_password
-from app.services.sessions import create_session, get_session, delete_session
+from app.services.sessions import create_session, get_session as get_user_session, delete_session
 from datetime import datetime
 
-
-security = HTTPBasic()
 
 router = APIRouter()
 
 async def get_current_user(
     session_token: Annotated[Optional[str], Cookie(alias="session")] = None,
-    db: Session = Depends(get_session)
+    db: Session = Depends(get_db_session)
 ) -> User:
     if not session_token:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
     
-    session_data = get_session(session_token)
+    session_data = get_user_session(session_token)
     if not session_data:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired session")
 
@@ -33,26 +31,40 @@ async def get_current_user(
 
 @router.post("/login")
 async def login(
+    request: Request,
     response: Response,
-    credentials: Annotated[HTTPBasicCredentials, Depends(security)],
-    db: Session = Depends(get_session)
+    db: Session = Depends(get_db_session)
 ):
-    statement = select(User).where(User.username == credentials.username)
-    user = db.exec(statement).first()
-
-    if not user or not verify_password(credentials.password, user.hashed_password):
+    print("Login attempt at", datetime.utcnow())
+    
+    auth_header = request.headers.get('Authorization')
+    
+    if not auth_header or not auth_header.startswith('Basic '):
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
-            headers={"WWW-Authenticate": "Basic"},
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Missing authorization header"
         )
     
-    user.last_login = datetime.utcnow()
-    db.add(user)
-    db.commit()
+    try:
+        credentials_bytes = base64.b64decode(auth_header[6:])  # Skip "Basic "
+        credentials_str = credentials_bytes.decode('utf-8')
+        username, password = credentials_str.split(':', 1)
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid authorization header format"
+        )
+    
+    statement = select(User).where(User.username == username)
+    user = db.exec(statement).first()
+
+    if not user or not verify_password(password, user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password"
+        )
     
     assert user.id is not None, "User ID should exist after database fetch"
-
     
     token = create_session(user.id)
     
@@ -74,7 +86,6 @@ async def logout(
     if session_token:
         delete_session(session_token)
     
-    # Clear cookie
     response.delete_cookie(key="session")
     
     return {"message": "Logout successful"}
