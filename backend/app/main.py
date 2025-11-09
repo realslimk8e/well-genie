@@ -21,8 +21,8 @@ app = FastAPI(
 app.include_router(sleep.router, prefix="/api")
 app.include_router(diet.router, prefix="/api")
 app.include_router(exercise.router, prefix="/api")
-app.include_router(upload.router)
-app.include_router(auth.router)
+app.include_router(upload.router, prefix="/api")
+app.include_router(auth.router, prefix="/api")
 
 # --- Routes
 @app.get("/")
