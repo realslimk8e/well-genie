@@ -2,7 +2,7 @@ import { render, screen, cleanup } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { act } from 'react';
 import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
-import ImportPage from '../../assets/import';
+import ImportPage from '../../components/import';
 
 declare global {
   interface File {

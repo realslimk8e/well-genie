@@ -2,15 +2,14 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import Sidebar from './components/Sidebar';
 import MobileTabBar from './components/MobileTabBar';
-import QuickStatsCard from './components/QuickStatsCard';
 import SleepPanel from './components/panels/SleepPanel';
 import DietPanel from './components/panels/DietPanel';
 import ExercisePanel from './components/panels/ExercisePanel';
 import ChatbotPanel from './components/panels/ChatbotPanel';
 import SettingsPanel from './components/panels/SettingsPanel';
-import Login from './assets/login';
-import SignUp from './assets/Signup';
-import ImportPage from './assets/import';
+import Login from './components/login';
+import SignUp from './components/Signup';
+import ImportPage from './components/import';
 import { useSleep } from './hooks/useSleep';
 import { useDiet } from './hooks/useDiet';
 import { useExercise } from './hooks/useExercise';
@@ -47,9 +46,7 @@ const initialTabFromHash = (): NavKey => {
 const App: React.FC = () => {
   const [message, setMessage] = useState<string>('');
   const [tab, setTab] = useState<NavKey>(initialTabFromHash);
-  const [authed, setAuthed] = useState<boolean>(
-    !!localStorage.getItem('wellgenie:authed')
-  );
+  const [authed, setAuthed] = useState<boolean>(false);
   const [authView, setAuthView] = useState<'login' | 'signup'>('login');
 
   const { items: sleepItems, loading: sleepLoading } = useSleep();
@@ -108,13 +105,6 @@ const App: React.FC = () => {
   const exToday = exItems.length ? getMin(exItems.at(-1)) : 0;
 
   useEffect(() => {
-    axios
-      .get('/api/')
-      .then((r) => setMessage(r.data.message))
-      .catch(() => {});
-  }, []);
-
-  useEffect(() => {
     if (typeof window === 'undefined') return;
     const desired = `#${tab}`;
     if (window.location.hash !== desired) {
@@ -133,19 +123,40 @@ const App: React.FC = () => {
     return () => window.removeEventListener('hashchange', onHashChange);
   }, []);
 
+  useEffect(() => {
+    // Verify authentication state on app load
+    axios
+      .get('api/me', { withCredentials: true })
+      .then((response) => {
+        if (response.status === 200 && response.data.username) {
+          setAuthed(true);
+        } else {
+          setAuthed(false);
+        }
+      })
+      .catch(() => {
+        setAuthed(false);
+      });
+  }, []);
+
   const handleLogout = () => {
-    localStorage.removeItem('wellgenie:authed');
-    setAuthed(false);
-    setAuthView('login');
+    axios
+      .post('api/logout', {}, { withCredentials: true })
+      .then(() => {
+        setAuthed(false);
+        setAuthView('login');
+      })
+      .catch((error) => {
+        console.error('Logout failed:', error);
+      });
   };
 
   const handleLoginSuccess = () => {
-    localStorage.setItem('wellgenie:authed', '1');
-    setAuthed(true);
+    // Reload the page to ensure all components re-render with the new auth state
+    window.location.reload();
   };
 
   const handleSignupSuccess = () => {
-    localStorage.setItem('wellgenie:authed', '1');
     setAuthed(true);
   };
 
@@ -155,7 +166,7 @@ const App: React.FC = () => {
         <div className="w-full max-w-md">
           {authView === 'login' ? (
             <Login
-              onLogin={handleLoginSuccess}
+              onLogin={handleLoginSuccess}  // This gets called AFTER login succeeds
               onShowSignUp={() => setAuthView('signup')}
             />
           ) : (

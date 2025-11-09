@@ -15,7 +15,7 @@ export function useDiet() {
 
   useEffect(() => {
     let alive = true;
-    fetch('/api/diet')
+    fetch('/api/diet', { credentials: 'include' })
       .then((r) => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json() as Promise<DietResponse>;
