@@ -16,7 +16,7 @@ export function useSleep() {
 
   useEffect(() => {
     let alive = true;
-    fetch('/api/sleep')
+    fetch('/api/sleep', { credentials: 'include' })
       .then((r) => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json() as Promise<SleepResponse>;

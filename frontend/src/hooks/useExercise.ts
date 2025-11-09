@@ -17,7 +17,7 @@ export function useExercise() {
 
   useEffect(() => {
     let alive = true;
-    fetch('/api/exercise')
+    fetch('/api/exercise', { credentials: 'include' })
       .then((r) => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json() as Promise<ExerciseResponse>;
