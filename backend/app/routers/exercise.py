@@ -3,11 +3,13 @@ from fastapi import APIRouter, Depends, Query
 from sqlmodel import Session, select
 from app.database import get_session
 from app.models import ExerciseEntry
+from app.routers.auth import get_current_user, User
 
 router = APIRouter()
 
 @router.get("/exercise")
 async def get_exercise_entries(
+    current_user: User = Depends(get_current_user),
     start_date: date | None = None,
     end_date: date | None = None,
     min_steps: int | None = None,
