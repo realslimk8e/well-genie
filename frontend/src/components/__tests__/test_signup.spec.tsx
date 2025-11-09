@@ -1,7 +1,7 @@
 import { render, screen, cleanup } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
-import SignUp from '../../assets/Signup';
+import SignUp from '../../components/Signup';
 
 afterEach(() => cleanup());
 
