@@ -1,60 +1,58 @@
 from fastapi.testclient import TestClient
 
 
-class TestGetSleepEntriesNoFilters:
-    """Test GET /api/sleep without any filters"""
+class TestGetDietEntriesNoFilters:
+    """Test GET /api/diet without any filters"""
     
-    def test_returns_200_status(self, client: TestClient, sleep_entries):
+    def test_returns_200_status(self, client: TestClient, diet_entries):
         """Verify endpoint returns 200 OK status"""
-        response = client.get("/api/sleep")
+        response = client.get("/api/diet")
         assert response.status_code == 200
     
-    def test_returns_all_entries(self, client: TestClient, sleep_entries):
-        """Verify endpoint returns all sleep entries from database"""
-        response = client.get("/api/sleep")
+    def test_returns_all_entries(self, client: TestClient, diet_entries):
+        """Verify endpoint returns all diet entries from database"""
+        response = client.get("/api/diet")
         data = response.json()
         
         assert "items" in data
-        assert len(data["items"]) == len(sleep_entries)
+        assert len(data["items"]) == len(diet_entries)
         
         # Verify all entries are present
         returned_dates = {entry["date"] for entry in data["items"]}
-        expected_dates = {str(entry.date) for entry in sleep_entries}
+        expected_dates = {str(entry.date) for entry in diet_entries}
         assert returned_dates == expected_dates
     
     def test_returns_empty_list_when_no_data(self, client: TestClient):
         """Verify endpoint returns empty list when database is empty"""
-        response = client.get("/api/sleep")
+        response = client.get("/api/diet")
         data = response.json()
         
         assert response.status_code == 200
         assert data["items"] == []
 
 
-class TestGetSleepEntriesWithStartDate:
-    """Test GET /api/sleep with start_date filter"""
+class TestGetDietEntriesWithStartDate:
+    """Test GET /api/diet with start_date filter"""
     
-    def test_filters_by_start_date(self, client: TestClient, sleep_entries):
+    def test_filters_by_start_date(self, client: TestClient, diet_entries):
         """Verify only entries on or after start_date are returned"""
-        response = client.get("/api/sleep?start_date=2024-01-03")
+        response = client.get("/api/diet?start_date=2024-01-03")
         data = response.json()
         
         assert response.status_code == 200
         assert len(data["items"]) == 5
         
         returned_dates = [entry["date"] for entry in data["items"]]
-        assert "2024-01-01" not in returned_dates
-        assert "2024-01-02" not in returned_dates
         for date_str in ["2024-01-03", "2024-01-04", "2024-01-05", "2024-01-06", "2024-01-07"]:
             assert date_str in returned_dates
 
 
-class TestGetSleepEntriesWithEndDate:
-    """Test GET /api/sleep with end_date filter"""
+class TestGetDietEntriesWithEndDate:
+    """Test GET /api/diet with end_date filter"""
     
-    def test_filters_by_end_date(self, client: TestClient, sleep_entries):
+    def test_filters_by_end_date(self, client: TestClient, diet_entries):
         """Verify only entries on or before end_date are returned"""
-        response = client.get("/api/sleep?end_date=2024-01-04")
+        response = client.get("/api/diet?end_date=2024-01-04")
         data = response.json()
         
         assert response.status_code == 200
@@ -63,16 +61,14 @@ class TestGetSleepEntriesWithEndDate:
         returned_dates = [entry["date"] for entry in data["items"]]
         for date_str in ["2024-01-01", "2024-01-02", "2024-01-03", "2024-01-04"]:
             assert date_str in returned_dates
-        for date_str in ["2024-01-05", "2024-01-06", "2024-01-07"]:
-            assert date_str not in returned_dates
 
 
-class TestGetSleepEntriesWithDateRange:
-    """Test GET /api/sleep with both start_date and end_date filters"""
+class TestGetDietEntriesWithDateRange:
+    """Test GET /api/diet with both start_date and end_date filters"""
     
-    def test_filters_by_date_range(self, client: TestClient, sleep_entries):
+    def test_filters_by_date_range(self, client: TestClient, diet_entries):
         """Verify only entries within date range are returned"""
-        response = client.get("/api/sleep?start_date=2024-01-03&end_date=2024-01-05")
+        response = client.get("/api/diet?start_date=2024-01-03&end_date=2024-01-05")
         data = response.json()
         
         assert response.status_code == 200
@@ -81,90 +77,68 @@ class TestGetSleepEntriesWithDateRange:
         returned_dates = [entry["date"] for entry in data["items"]]
         for date_str in ["2024-01-03", "2024-01-04", "2024-01-05"]:
             assert date_str in returned_dates
-        for date_str in ["2024-01-01", "2024-01-02", "2024-01-06", "2024-01-07"]:
-            assert date_str not in returned_dates
 
 
-class TestGetSleepEntriesWithMinHours:
-    """Test GET /api/sleep with min_hours filter"""
+class TestGetDietEntriesWithMinCalories:
+    """Test GET /api/diet with min_calories filter"""
     
-    def test_filters_by_min_hours(self, client: TestClient, sleep_entries):
-        """Verify only entries with hours >= min_hours are returned"""
-        response = client.get("/api/sleep?min_hours=8")
+    def test_filters_by_min_calories(self, client: TestClient, diet_entries):
+        """Verify only entries with calories >= min_calories are returned"""
+        response = client.get("/api/diet?min_calories=2000")
         data = response.json()
         
         assert response.status_code == 200
         assert len(data["items"]) == 4
         
-        # Verify all returned entries have hours >= 8
         for entry in data["items"]:
-            assert entry["hours"] >= 8.0
+            assert entry["calories"] >= 2000
 
 
-class TestGetSleepEntriesWithMaxHours:
-    """Test GET /api/sleep with max_hours filter"""
+class TestGetDietEntriesWithMaxCalories:
+    """Test GET /api/diet with max_calories filter"""
     
-    def test_filters_by_max_hours(self, client: TestClient, sleep_entries):
-        """Verify only entries with hours <= max_hours are returned"""
-        response = client.get("/api/sleep?max_hours=7.5")
+    def test_filters_by_max_calories(self, client: TestClient, diet_entries):
+        """Verify only entries with calories <= max_calories are returned"""
+        response = client.get("/api/diet?max_calories=1900")
         data = response.json()
         
         assert response.status_code == 200
         assert len(data["items"]) == 3
         
-        # Verify all returned entries have hours <= 7.5
         for entry in data["items"]:
-            assert entry["hours"] <= 7.5
+            assert entry["calories"] <= 1900
 
 
-class TestGetSleepEntriesWithHoursRange:
-    """Test GET /api/sleep with both min_hours and max_hours filters"""
+class TestGetDietEntriesWithCaloriesRange:
+    """Test GET /api/diet with both min_calories and max_calories filters"""
     
-    def test_filters_by_hours_range(self, client: TestClient, sleep_entries):
-        """Verify only entries within hours range are returned"""
-        response = client.get("/api/sleep?min_hours=7&max_hours=8.5")
+    def test_filters_by_calories_range(self, client: TestClient, diet_entries):
+        """Verify only entries within calories range are returned"""
+        response = client.get("/api/diet?min_calories=1800&max_calories=2200")
         data = response.json()
         
         assert response.status_code == 200
         assert len(data["items"]) == 4
         
-        # Verify all returned entries are within range
         for entry in data["items"]:
-            assert 7.0 <= entry["hours"] <= 8.5
+            assert 1800 <= entry["calories"] <= 2200
 
 
-class TestGetSleepEntriesWithQuality:
-    """Test GET /api/sleep with quality filter"""
+class TestGetDietEntriesWithMultipleFilters:
+    """Test GET /api/diet with multiple filters combined"""
     
-    def test_filters_by_quality(self, client: TestClient, sleep_entries):
-        """Verify only entries matching quality are returned"""
-        response = client.get("/api/sleep?quality=excellent")
-        data = response.json()
-        
-        assert response.status_code == 200
-        assert len(data["items"]) == 3
-        
-        # Verify all returned entries have quality "excellent"
-        for entry in data["items"]:
-            assert entry["quality"] == "excellent"
-
-
-class TestGetSleepEntriesWithMultipleFilters:
-    """Test GET /api/sleep with multiple filters combined"""
-    
-    def test_combines_multiple_filters(self, client: TestClient, sleep_entries):
+    def test_combines_multiple_filters(self, client: TestClient, diet_entries):
         """Verify multiple filters work together correctly"""
         response = client.get(
-            "/api/sleep?start_date=2024-01-03&end_date=2024-01-05&min_hours=7&quality=good"
+            "/api/diet?start_date=2024-01-04&end_date=2024-01-06&min_calories=2000&max_calories=2500"
         )
         data = response.json()
         
         assert response.status_code == 200
-        assert len(data["items"]) == 1
+        assert len(data["items"]) == 3
         
-        # Verify all filters are applied
         for entry in data["items"]:
-            assert entry["date"] >= "2024-01-03"
-            assert entry["date"] <= "2024-01-05"
-            assert entry["hours"] >= 7.0
-            assert entry["quality"] == "good"
+            # These assertions are implicitly covered by the API logic and the length check,
+            # but can be kept for explicit verification.
+            assert "2024-01-04" <= entry["date"] <= "2024-01-06"
+            assert 2000 <= entry["calories"] <= 2500

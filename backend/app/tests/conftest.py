@@ -1,103 +1,5 @@
 import pytest
 from datetime import date
-from fastapi.testclient import TestClient
-from sqlmodel import Session, SQLModel, create_engine
-from sqlmodel.pool import StaticPool
-from app.main import app
-from app.database import get_session
-from app.models import SleepEntry, ExerciseEntry, DietEntry
-
-
-@pytest.fixture(name="session")
-def session_fixture():
-    """Create a fresh test database for each test"""
-    engine = create_engine(
-        "sqlite://",
-        connect_args={"check_same_thread": False},
-        poolclass=StaticPool,
-    )
-    SQLModel.metadata.create_all(engine)
-    with Session(engine) as session:
-        yield session
-
-
-@pytest.fixture(name="client")
-def client_fixture(session: Session):
-    """Create a test client with the test database session"""
-    def get_session_override():
-        return session
-    
-    app.dependency_overrides[get_session] = get_session_override
-    client = TestClient(app)
-    yield client
-    app.dependency_overrides.clear()
-
-
-@pytest.fixture(name="sleep_entries")
-def sleep_entries_fixture(session: Session):
-    """
-    Create comprehensive sleep entries for all filter tests.
-    """
-    entries = [
-        SleepEntry(date=date(2024, 1, 1), hours=5.5, quality="poor"),
-        SleepEntry(date=date(2024, 1, 2), hours=7.0, quality="good"),
-        SleepEntry(date=date(2024, 1, 3), hours=8.0, quality="good"),
-        SleepEntry(date=date(2024, 1, 4), hours=8.5, quality="excellent"),
-        SleepEntry(date=date(2024, 1, 5), hours=9.0, quality="excellent"),
-        SleepEntry(date=date(2024, 1, 6), hours=7.5, quality="fair"),
-        SleepEntry(date=date(2024, 1, 7), hours=10.0, quality="excellent"),
-    ]
-    for entry in entries:
-        session.add(entry)
-    session.commit()
-    for entry in entries:
-        session.refresh(entry)
-    return entries
-
-@pytest.fixture(name="exercise_entries")
-def exercise_entries_fixture(session: Session):
-    """
-    Create comprehensive exercise entries for all filter tests.
-    """
-    entries = [
-        ExerciseEntry(date=date(2024, 1, 1), steps=5000, duration_min=45, calories_burned = 400),
-        ExerciseEntry(date=date(2024, 1, 2), steps=6000, duration_min=6, calories_burned = 200),
-        ExerciseEntry(date=date(2024, 1, 3), steps=7000, duration_min=15, calories_burned = 500),
-        ExerciseEntry(date=date(2024, 1, 4), steps=8000, duration_min=30, calories_burned = 600),
-        ExerciseEntry(date=date(2024, 1, 5), steps=9000, duration_min=45, calories_burned = 750),
-        ExerciseEntry(date=date(2024, 1, 6), steps=10000, duration_min=60, calories_burned = 800),
-        ExerciseEntry(date=date(2024, 1, 7), steps=11000, duration_min=75, calories_burned = 900),
-    ]
-    for entry in entries:
-        session.add(entry)
-    session.commit()
-    for entry in entries:
-        session.refresh(entry)
-    return entries
-
-@pytest.fixture(name="sleep_entries")
-def sleep_entries_fixture(session: Session):
-    """
-    Create comprehensive exercise entries for all filter tests.
-    """
-    entries = [
-        SleepEntry(date=date(2024, 1, 1), hours=10, quality="poor"),
-        SleepEntry(date=date(2024, 1, 2), hours=5, quality= "good"),
-        SleepEntry(date=date(2024, 1, 3), hours=6, quality = "fair"),
-        SleepEntry(date=date(2024, 1, 4), hours=8, quality = "excellent"),
-        SleepEntry(date=date(2024, 1, 5), hours=9, quality = "good"),
-        SleepEntry(date=date(2024, 1, 6), hours=8, quality = "poor"),
-        SleepEntry(date=date(2024, 1, 7), hours=10, quality = "fair"),
-    ]
-    for entry in entries:
-        session.add(entry)
-    session.commit()
-    for entry in entries:
-        session.refresh(entry)
-    return entries
-
-import pytest
-from datetime import date
 from io import BytesIO
 from fastapi.testclient import TestClient
 from sqlmodel import Session, SQLModel, create_engine
@@ -123,10 +25,18 @@ def session_fixture():
 @pytest.fixture(name="client")
 def client_fixture(session: Session):
     """Create a test client with the test database session"""
+    from app.routers.auth import get_current_user
+    from app.models import User
+    
     def get_session_override():
         return session
     
+    async def override_get_current_user():
+        """Mock user for testing - bypasses authentication"""
+        return User(id=1, username="testuser", email="test@example.com", hashed_password="dummy")
+    
     app.dependency_overrides[get_session] = get_session_override
+    app.dependency_overrides[get_current_user] = override_get_current_user
     client = TestClient(app)
     yield client
     app.dependency_overrides.clear()
@@ -263,3 +173,49 @@ def csv_with_headers_only_fixture():
     """Create a CSV with only headers"""
     csv_content = """date,hours,quality"""
     return BytesIO(csv_content.encode())
+
+
+# Authentication Testing Fixtures (optional - for testing auth endpoints)
+
+@pytest.fixture(name="test_user")
+def test_user_fixture(session: Session):
+    """Create a test user in the database for authentication tests"""
+    from app.models import User
+    from app.services.auth import get_password_hash
+    
+    user = User(
+        username="testuser",
+        email="test@example.com",
+        hashed_password=get_password_hash("testpassword123")
+    )
+    session.add(user)
+    session.commit()
+    session.refresh(user)
+    return user
+
+
+@pytest.fixture(name="authenticated_client")
+def authenticated_client_fixture(client: TestClient, session: Session):
+    """Create a client with a real authentication session (for auth tests)"""
+    from app.models import User
+    from app.services.auth import get_password_hash
+    import base64
+    
+    # Create a real user in the database
+    user = User(
+        username="authuser",
+        email="auth@example.com",
+        hashed_password=get_password_hash("authpass123")
+    )
+    session.add(user)
+    session.commit()
+    
+    # Login to get session cookie
+    credentials = base64.b64encode(b"authuser:authpass123").decode()
+    response = client.post(
+        "/api/login",
+        headers={"Authorization": f"Basic {credentials}"}
+    )
+    
+    # The session cookie is automatically stored in the TestClient
+    return client
