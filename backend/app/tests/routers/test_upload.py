@@ -5,12 +5,12 @@ from app.models import SleepEntry, DietEntry, ExerciseEntry
 
 
 class TestUploadValidFiles:
-    """Test POST /upload with valid CSV files"""
+    """Test POST /api/upload with valid CSV files"""
     
     def test_upload_valid_sleep_csv(self, client: TestClient, valid_sleep_csv, session: Session):
         """Verify successful upload of valid sleep.csv"""
         files = {"file": ("sleep.csv", valid_sleep_csv, "text/csv")}
-        response = client.post("/upload", files=files)
+        response = client.post("/api/upload", files=files)
         
         assert response.status_code == 200
         data = response.json()
@@ -28,7 +28,7 @@ class TestUploadValidFiles:
     def test_upload_valid_diet_csv(self, client: TestClient, valid_diet_csv, session: Session):
         """Verify successful upload of valid diet.csv"""
         files = {"file": ("diet.csv", valid_diet_csv, "text/csv")}
-        response = client.post("/upload", files=files)
+        response = client.post("/api/upload", files=files)
         
         assert response.status_code == 200
         data = response.json()
@@ -46,7 +46,7 @@ class TestUploadValidFiles:
     def test_upload_valid_exercise_csv(self, client: TestClient, valid_exercise_csv, session: Session):
         """Verify successful upload of valid exercise.csv"""
         files = {"file": ("exercise.csv", valid_exercise_csv, "text/csv")}
-        response = client.post("/upload", files=files)
+        response = client.post("/api/upload", files=files)
         
         assert response.status_code == 200
         data = response.json()
@@ -63,12 +63,12 @@ class TestUploadValidFiles:
 
 
 class TestUploadInvalidFiles:
-    """Test POST /upload with invalid CSV files"""
+    """Test POST /api/upload with invalid CSV files"""
     
     def test_upload_csv_with_missing_columns(self, client: TestClient, invalid_csv_missing_columns):
         """Verify rejection of CSV with missing required columns"""
         files = {"file": ("sleep.csv", invalid_csv_missing_columns, "text/csv")}
-        response = client.post("/upload", files=files)
+        response = client.post("/api/upload", files=files)
         
         assert response.status_code == 400
         data = response.json()
@@ -80,7 +80,7 @@ class TestUploadInvalidFiles:
     def test_upload_csv_with_wrong_data_types(self, client: TestClient, invalid_csv_wrong_data_types):
         """Verify rejection of CSV with invalid data types"""
         files = {"file": ("sleep.csv", invalid_csv_wrong_data_types, "text/csv")}
-        response = client.post("/upload", files=files)
+        response = client.post("/api/upload", files=files)
         
         assert response.status_code == 400
         data = response.json()
@@ -91,7 +91,7 @@ class TestUploadInvalidFiles:
     def test_upload_empty_csv(self, client: TestClient, empty_csv):
         """Verify rejection of empty CSV file"""
         files = {"file": ("sleep.csv", empty_csv, "text/csv")}
-        response = client.post("/upload", files=files)
+        response = client.post("/api/upload", files=files)
         
         assert response.status_code == 400
         data = response.json()
@@ -101,7 +101,7 @@ class TestUploadInvalidFiles:
     def test_upload_csv_with_headers_only(self, client: TestClient, csv_with_headers_only):
         """Verify rejection of CSV with only headers and no data"""
         files = {"file": ("sleep.csv", csv_with_headers_only, "text/csv")}
-        response = client.post("/upload", files=files)
+        response = client.post("/api/upload", files=files)
         
         assert response.status_code == 400
         data = response.json()
@@ -110,13 +110,13 @@ class TestUploadInvalidFiles:
 
 
 class TestUploadWrongFileType:
-    """Test POST /upload with non-CSV files"""
+    """Test POST /api/upload with non-CSV files"""
     
     def test_upload_txt_file(self, client: TestClient):
         """Verify rejection of .txt file"""
         txt_content = BytesIO(b"This is a text file, not a CSV")
         files = {"file": ("document.txt", txt_content, "text/plain")}
-        response = client.post("/upload", files=files)
+        response = client.post("/api/upload", files=files)
         
         assert response.status_code == 400
     
@@ -124,13 +124,13 @@ class TestUploadWrongFileType:
         """Verify rejection of .json file"""
         json_content = BytesIO(b'{"data": "value"}')
         files = {"file": ("data.json", json_content, "application/json")}
-        response = client.post("/upload", files=files)
+        response = client.post("/api/upload", files=files)
         
         assert response.status_code == 400
 
 
 class TestUploadUnrecognizedHeaders:
-    """Test POST /upload with unrecognized CSV filenames"""
+    """Test POST /api/upload with unrecognized CSV filenames"""
     
     def test_upload_csv_with_unrecognized_headers(self, client: TestClient, valid_sleep_csv):
         """Verify rejection of CSV with headers that don't match any category"""
@@ -138,7 +138,7 @@ class TestUploadUnrecognizedHeaders:
                                 John,30,NYC
                                 Jane,25,LA""")
         files = {"file": ("unknown.csv", csv_content, "text/csv")}
-        response = client.post("/upload", files=files)
+        response = client.post("/api/upload", files=files)
         
         assert response.status_code == 400
 
@@ -153,7 +153,7 @@ class TestUploadDataIntegrity:
                             2024-01-16,8.5,excellent""")
         
         files = {"file": ("sleep.csv", csv_content, "text/csv")}
-        response = client.post("/upload", files=files)
+        response = client.post("/api/upload", files=files)
         
         assert response.status_code == 200
         
@@ -177,14 +177,14 @@ class TestUploadDataIntegrity:
         csv1 = BytesIO(b"""date,hours,quality
                 2024-01-01,7.0,good""")
         files1 = {"file": ("sleep.csv", csv1, "text/csv")}
-        response1 = client.post("/upload", files=files1)
+        response1 = client.post("/api/upload", files=files1)
         assert response1.status_code == 200
         
         # Second upload
         csv2 = BytesIO(b"""date,hours,quality
                 2024-01-02,8.0,excellent""")
         files2 = {"file": ("sleep.csv", csv2, "text/csv")}
-        response2 = client.post("/upload", files=files2)
+        response2 = client.post("/api/upload", files=files2)
         assert response2.status_code == 200
         
         # Verify both entries exist
@@ -193,11 +193,11 @@ class TestUploadDataIntegrity:
 
 
 class TestUploadNoFile:
-    """Test POST /upload without providing a file"""
+    """Test POST /api/upload without providing a file"""
     
     def test_upload_without_file(self, client: TestClient):
         """Verify proper error when no file is provided"""
-        response = client.post("/upload")
+        response = client.post("/api/upload")
         
         # FastAPI returns 422 for missing required field
         assert response.status_code == 422
