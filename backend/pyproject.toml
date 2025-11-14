@@ -1,12 +1,12 @@
 [project]
-name = "backend"
+name = "WellGenie-backend"
 version = "0.1.0"
-description = "Add your description here"
+description = "WellGenie API server"
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
     "argon2-cffi>=25.1.0",
-    "fastapi>=0.118.0",
+    "fastapi[standard]>=0.118.0",
     "httpx>=0.28.1",
     "passlib>=1.7.4",
     "python-multipart>=0.0.20",
