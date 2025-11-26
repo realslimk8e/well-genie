@@ -1,4 +1,5 @@
 import { useDiet } from "../../hooks/useDiet";
+import { useMemo, useState } from "react";
 
 type DietItem = {
   id: number;
@@ -12,8 +13,63 @@ type DietItem = {
 const fmtWeekday = new Intl.DateTimeFormat(undefined, { weekday: "short" });
 const fmtDate = new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric" });
 
+type ViewMode = "daily" | "weekly" | "monthly";
+
+const startOfWeek = (d: Date) => {
+  const date = new Date(d);
+  const day = date.getDay();
+  const diff = (day + 6) % 7;
+  date.setDate(date.getDate() - diff);
+  date.setHours(0, 0, 0, 0);
+  return date;
+};
+
+const startOfMonth = (d: Date) => {
+  const date = new Date(d);
+  date.setDate(1);
+  date.setHours(0, 0, 0, 0);
+  return date;
+};
+
+const formatLabel = (date: Date, view: ViewMode) => {
+  if (view === "daily") return date.toLocaleDateString();
+  if (view === "weekly") return `Week of ${date.toLocaleDateString()}`;
+  const month = date.toLocaleString(undefined, { month: "short" });
+  return `${month} ${date.getFullYear()}`;
+};
+
+const aggregateDiet = (items: DietItem[], view: ViewMode) => {
+  const groups = new Map<
+    string,
+    { label: string; calories: number; protein: number; fat: number; carbs: number }
+  >();
+
+  items.forEach((item) => {
+    const d = new Date(item.date);
+    const bucket =
+      view === "daily"
+        ? new Date(d.getFullYear(), d.getMonth(), d.getDate())
+        : view === "weekly"
+        ? startOfWeek(d)
+        : startOfMonth(d);
+    const key = bucket.toISOString();
+    const label = formatLabel(bucket, view);
+    const entry =
+      groups.get(key) ??
+      { label, calories: 0, protein: 0, fat: 0, carbs: 0 };
+    entry.calories += Number(item.calories ?? 0);
+    entry.protein += Number(item.protein_g ?? 0);
+    entry.fat += Number(item.fat_g ?? 0);
+    entry.carbs += Number(item.carbs_g ?? 0);
+    groups.set(key, entry);
+  });
+
+  return Array.from(groups.values()).sort((a, b) => a.label.localeCompare(b.label));
+};
+
 export default function DietPanel() {
   const { items, loading, error } = useDiet();
+  const [view, setView] = useState<ViewMode>("daily");
 
   const last7 = (items.slice(-7) as DietItem[]);
 
@@ -29,6 +85,19 @@ export default function DietPanel() {
   const avgCalories = avg("calories");
   const avgFat = avg("fat_g");
   const avgCarbs = avg("carbs_g");
+
+  const aggregates = useMemo(() => aggregateDiet(items as DietItem[], view), [items, view]);
+
+  const calorieValues = (items as DietItem[]).map((r) => Number(r.calories ?? 0));
+  const aggMetrics =
+    calorieValues.length === 0
+      ? null
+      : {
+          sum: calorieValues.reduce((s, n) => s + n, 0),
+          avg: calorieValues.reduce((s, n) => s + n, 0) / calorieValues.length || 0,
+          min: Math.min(...calorieValues),
+          max: Math.max(...calorieValues),
+        };
 
   if (loading) {
     return (
@@ -114,6 +183,58 @@ export default function DietPanel() {
             <div className="text-xs opacity-70 mt-2">
               Showing the most recent 7 entries.
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Aggregated views */}
+      <div className="card bg-base-100 border border-base-300">
+        <div className="card-body">
+          <div className="flex items-center justify-between">
+            <h3 className="card-title text-base">Aggregated summaries</h3>
+            <div className="join">
+              {(["daily", "weekly", "monthly"] as ViewMode[]).map((mode) => (
+                <button
+                  key={mode}
+                  className={`btn btn-xs join-item ${view === mode ? "btn-primary" : "btn-ghost"}`}
+                  onClick={() => setView(mode)}
+                >
+                  {mode[0].toUpperCase() + mode.slice(1)}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="table table-compact">
+              <thead>
+                <tr>
+                  <th>Period</th>
+                  <th className="text-right">Calories</th>
+                  <th className="text-right">Protein (g)</th>
+                  <th className="text-right">Carbs (g)</th>
+                  <th className="text-right">Fat (g)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {aggregates.map((row, idx) => (
+                  <tr key={idx}>
+                    <td>{row.label}</td>
+                    <td className="text-right">{row.calories}</td>
+                    <td className="text-right">{row.protein}</td>
+                    <td className="text-right">{row.carbs}</td>
+                    <td className="text-right">{row.fat}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {aggMetrics && (
+              <div className="mt-3 text-sm" data-testid="diet-aggregations">
+                Aggregations (calories): sum {aggMetrics.sum}, avg{' '}
+                {aggMetrics.avg.toFixed(1)}, min {aggMetrics.min}, max{' '}
+                {aggMetrics.max}
+              </div>
+            )}
           </div>
         </div>
       </div>
