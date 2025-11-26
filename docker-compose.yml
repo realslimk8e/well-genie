@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend/
+      dockerfile: Dockerfile
+    ports:
+      - "8000:80"
+    environment:
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - sqlite_data:/app/data
+    networks:
+      - app-network
+    command: >
+      sh -c "
+      uv run seed.py &&
+      /app/.venv/bin/fastapi run app/main.py --port 80 --host 0.0.0.0
+      "
+
+  frontend:
+    build:
+      context: ./frontend/
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    environment:
+      - VITE_API_URL=http://localhost:8000
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  sqlite_data:
