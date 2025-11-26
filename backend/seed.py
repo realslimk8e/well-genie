@@ -60,7 +60,7 @@ def seed_user(session: Session):
     session.add(user)
     session.commit()
     
-    print("✅ Created user 'admin' with password 'wellgenie'")
+    print("✅ Created user 'admin' with password '123'")
     print("⚠️  IMPORTANT: Change this password in production!")
 
 
