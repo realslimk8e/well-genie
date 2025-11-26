@@ -4,6 +4,10 @@ export type DietItem = {
   id: number;
   date: string; // "YYYY-MM-DD"
   score: number; // 0..100 (adjust if your API differs)
+  protein_g: number;
+  carbs_g: number;
+  fat_g: number;
+  calories: number;
 };
 
 type DietResponse = { items: DietItem[] };

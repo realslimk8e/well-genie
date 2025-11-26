@@ -11,8 +11,8 @@ import Login from './components/login';
 import SignUp from './components/Signup';
 import ImportPage from './components/import';
 import { useSleep } from './hooks/useSleep';
-import { useDiet } from './hooks/useDiet';
-import { useExercise } from './hooks/useExercise';
+import { useDiet, type DietItem } from './hooks/useDiet';
+import { useExercise, type ExerciseItem } from './hooks/useExercise';
 import MetricTile from './components/tiles/MetricTile';
 import GaugeTile from './components/tiles/GaugeTile';
 import ListPercentTile from './components/tiles/ListPercentTile';
@@ -44,7 +44,6 @@ const initialTabFromHash = (): NavKey => {
 };
 
 const App: React.FC = () => {
-  const [message, setMessage] = useState<string>('');
   const [tab, setTab] = useState<NavKey>(initialTabFromHash);
   const [authed, setAuthed] = useState<boolean>(false);
   const [authView, setAuthView] = useState<'login' | 'signup'>('login');
@@ -53,11 +52,15 @@ const App: React.FC = () => {
   const { items: dietItems, loading: dietLoading } = useDiet();
   const { items: exItems, loading: exLoading } = useExercise();
 
-  const sleepLast7 = sleepItems.slice(-7);
+  type SleepItem = {
+    hours: number;
+    quality: SleepQuality;
+  };
+
+  const sleepLast7 = (sleepItems as SleepItem[]).slice(-7);
   const sleepAvgHours = sleepLast7.length
     ? (
-        sleepLast7.reduce((s, r: any) => s + (r?.hours ?? 0), 0) /
-        sleepLast7.length
+        sleepLast7.reduce((s, r) => s + (r?.hours ?? 0), 0) / sleepLast7.length
       ).toFixed(1)
     : '0.0';
 
@@ -68,41 +71,28 @@ const App: React.FC = () => {
     fair: 2,
     poor: 1,
   };
-  const s2q = (n: number): SleepQuality =>
-    n >= 3.5 ? 'excellent' : n >= 2.5 ? 'good' : n >= 1.5 ? 'fair' : 'poor';
 
   const sleepAvgQScore = sleepLast7.length
     ? sleepLast7.reduce(
-        (s, r: any) => s + (q2s[(r?.quality as SleepQuality) ?? 'poor'] ?? 0),
+        (s, r) => s + (q2s[(r?.quality as SleepQuality) ?? 'poor'] ?? 0),
         0,
       ) / sleepLast7.length
     : 0;
 
-  type DietItem = {
-    id: number;
-    date: string;
-    calories: number;
-    protein_g: number;
-    fat_g: number;
-    carbs_g: number;
-  };
-
   const dietLast7 = (dietItems as DietItem[]).slice(-7);
-  const avgNum = (arr: any[], pick: (x: any) => number) =>
+  const avgNum = <T,>(arr: T[], pick: (x: T) => number) =>
     arr.length
       ? Math.round(arr.reduce((s, x) => s + pick(x), 0) / arr.length)
       : 0;
 
-  const avgProtein = avgNum(dietLast7, (d) => Number(d?.protein_g ?? 0));
-  const avgCarbs = avgNum(dietLast7, (d) => Number(d?.carbs_g ?? 0));
-  const avgFat = avgNum(dietLast7, (d) => Number(d?.fat_g ?? 0));
-  const avgCals = avgNum(dietLast7, (d) => Number(d?.calories ?? 0));
+  const avgProtein = avgNum(dietLast7, (d) => d?.protein_g ?? 0);
+  const avgCarbs = avgNum(dietLast7, (d) => d?.carbs_g ?? 0);
+  const avgFat = avgNum(dietLast7, (d) => d?.fat_g ?? 0);
+  const avgCals = avgNum(dietLast7, (d) => d?.calories ?? 0);
 
-  const exLast7 = exItems.slice(-7);
-  const getMin = (x: any) =>
-    Number(x?.minutes ?? x?.duration_min ?? x?.duration ?? 0);
-  const getSteps = (x: any) => Number(x?.steps ?? 0);
-  const exToday = exItems.length ? getMin(exItems.at(-1)) : 0;
+  const getMin = (x: ExerciseItem) =>
+    x?.minutes ?? x?.duration_min ?? x?.duration ?? 0;
+  const exToday = exItems.length ? getMin(exItems.at(-1) as ExerciseItem) : 0;
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -162,11 +152,11 @@ const App: React.FC = () => {
 
   if (!authed) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-base-200 p-4">
+      <div className="bg-base-200 flex min-h-screen items-center justify-center p-4">
         <div className="w-full max-w-md">
           {authView === 'login' ? (
             <Login
-              onLogin={handleLoginSuccess}  // This gets called AFTER login succeeds
+              onLogin={handleLoginSuccess} // This gets called AFTER login succeeds
               onShowSignUp={() => setAuthView('signup')}
             />
           ) : (
@@ -263,7 +253,7 @@ const App: React.FC = () => {
 
           {/* Other Tabs */}
           {tab !== 'overview' && (
-            <div className="card border border-base-300 bg-base-100">
+            <div className="card border-base-300 bg-base-100 border">
               <div className="card-body">
                 <h2 className="card-title capitalize">{tab}</h2>
                 {tab === 'sleep' && <SleepPanel />}
