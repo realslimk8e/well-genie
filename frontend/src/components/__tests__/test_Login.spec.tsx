@@ -4,6 +4,14 @@ import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
 
 import Login from '../../components/login';
 
+vi.mock('../../hooks/useLogin', () => ({
+  useLogin: () => ({
+    login: vi.fn().mockResolvedValue({ message: 'ok' }),
+    loading: false,
+    error: null,
+  }),
+}));
+
 afterEach(() => cleanup());
 
 describe('Login', () => {
@@ -13,23 +21,23 @@ describe('Login', () => {
     vi.restoreAllMocks();
   });
 
-  test('submit is disabled until both email and password have values', async () => {
+  test('submit is disabled until both username and password have values', async () => {
     const user = userEvent.setup();
     render(<Login />);
 
-    const email = screen.getByRole('textbox', { name: /email/i });
+    const username = screen.getByRole('textbox', { name: /username/i });
     const password = screen.getByLabelText(/password/i);
     const submit = screen.getByRole('button', { name: /^sign in$/i });
     expect(submit).toBeDisabled();
 
-    await user.type(email, 'user@wellgenie.dev');
+    await user.type(username, 'user123');
     expect(submit).toBeDisabled();
 
-    await user.clear(email);
+    await user.clear(username);
     await user.type(password, 'password123');
     expect(submit).toBeDisabled();
 
-    await user.type(email, 'user@wellgenie.dev');
+    await user.type(username, 'user123');
     expect(submit).toBeEnabled();
   });
 
@@ -39,7 +47,7 @@ describe('Login', () => {
 
     render(<Login onLogin={onLogin} />);
 
-    await user.type(screen.getByRole('textbox', { name: /email/i }), 'user@wellgenie.dev');
+    await user.type(screen.getByRole('textbox', { name: /username/i }), 'user123');
     await user.type(screen.getByLabelText(/password/i), 'password123');
 
     const submit = screen.getByRole('button', { name: /^sign in$/i });
@@ -47,7 +55,6 @@ describe('Login', () => {
 
     await user.click(submit);
 
-    expect(localStorage.getItem('wellgenie:authed')).toBe('1');
     expect(onLogin).toHaveBeenCalledTimes(1);
   });
 });
