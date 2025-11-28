@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
-import { useSleep } from '../../hooks/useSleep';
-import { useExercise } from '../../hooks/useExercise';
-import { useDiet } from '../../hooks/useDiet';
+import { useSleep, type SleepItem } from '../../hooks/useSleep';
+import { useExercise, type ExerciseItem } from '../../hooks/useExercise';
+import { useDiet, type DietItem } from '../../hooks/useDiet';
 
 type Message = { from: 'bot' | 'user'; text: string };
 
@@ -34,12 +34,12 @@ export default function ChatbotPanel() {
 
   const answers = useMemo(() => {
     // sleep last 7 days
-    const dates = (sleepItems as any[])
+    const dates = (sleepItems as SleepItem[])
       .map((r) => new Date(r.date).getTime())
       .filter((t) => !Number.isNaN(t));
     const ref = dates.length ? Math.max(...dates) : Date.now();
     const sevenDaysAgo = ref - 7 * 24 * 60 * 60 * 1000;
-    const recentSleep = (sleepItems as any[]).filter(
+    const recentSleep = (sleepItems as SleepItem[]).filter(
       (r) => new Date(r.date).getTime() >= sevenDaysAgo,
     );
     const sleepHours = recentSleep.reduce(
@@ -48,16 +48,18 @@ export default function ChatbotPanel() {
     );
 
     // average steps
-    const stepsVals = (exerciseItems as any[]).map((r) => Number(r.steps ?? 0));
+    const stepsVals = (exerciseItems as ExerciseItem[]).map((r) =>
+      Number(r.steps ?? 0),
+    );
     const stepsAvg =
       stepsVals.length > 0
-        ? Math.round(
-            stepsVals.reduce((s, n) => s + n, 0) / stepsVals.length,
-          )
+        ? Math.round(stepsVals.reduce((s, n) => s + n, 0) / stepsVals.length)
         : 0;
 
     // calories vs target
-    const calVals = (dietItems as any[]).map((r) => Number(r.calories ?? 0));
+    const calVals = (dietItems as DietItem[]).map((r) =>
+      Number(r.calories ?? 0),
+    );
     const calAvg =
       calVals.length > 0
         ? Math.round(calVals.reduce((s, n) => s + n, 0) / calVals.length)
@@ -89,12 +91,16 @@ export default function ChatbotPanel() {
     if (intentId === 'sleep-week') response = answers.sleep;
     if (intentId === 'steps-avg') response = answers.steps;
     if (intentId === 'calories-target') response = answers.calories;
-    setMessages((prev) => [...prev, { from: 'user', text }, { from: 'bot', text: response }]);
+    setMessages((prev) => [
+      ...prev,
+      { from: 'user', text },
+      { from: 'bot', text: response },
+    ]);
     setInput('');
   };
 
   return (
-    <div className="flex h-full flex-col p-4 gap-4">
+    <div className="flex h-full flex-col gap-4 p-4">
       <div className="flex flex-wrap gap-2">
         {intents.map((intent) => (
           <button
@@ -107,10 +113,15 @@ export default function ChatbotPanel() {
         ))}
       </div>
 
-      <div className="flex-grow space-y-3 overflow-y-auto rounded-lg border border-base-300 p-3">
+      <div className="border-base-300 flex-grow space-y-3 overflow-y-auto rounded-lg border p-3">
         {messages.map((m, idx) => (
-          <div key={idx} className={`chat ${m.from === 'bot' ? 'chat-start' : 'chat-end'}`}>
-            <div className={`chat-bubble ${m.from === 'bot' ? '' : 'chat-bubble-primary'}`}>
+          <div
+            key={idx}
+            className={`chat ${m.from === 'bot' ? 'chat-start' : 'chat-end'}`}
+          >
+            <div
+              className={`chat-bubble ${m.from === 'bot' ? '' : 'chat-bubble-primary'}`}
+            >
               {m.text}
             </div>
           </div>
