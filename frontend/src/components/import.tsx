@@ -2,9 +2,6 @@ import { useState } from 'react';
 import axios from 'axios';
 import { useUpload } from '../hooks/useUpload';
 
-const REQUIRED_HEADERS = ['date', 'category', 'metric', 'value'];
-const NUMERIC_FIELDS = ['value'];
-
 type PreviewRow = Record<string, string | number>;
 type ImportHistoryEntry = {
   id: number;
@@ -42,71 +39,6 @@ const statusToneClass = (status: ImportHistoryEntry['status']) => {
   }
 };
 
-function parseCsvText(text: string) {
-  const lines = text.trim().split(/\r?\n/);
-  const headerLine = lines[0] || '';
-  const headers = headerLine
-    .split(',')
-    .map((h) => h.trim().toLowerCase())
-    .filter(Boolean);
-
-  const missingHeaders = REQUIRED_HEADERS.filter(
-    (header) => !headers.includes(header)
-  );
-
-  const dataLines = lines.slice(1).filter((line) => line.trim().length > 0);
-  const parsedRows: PreviewRow[] = dataLines.map((line, idx) => {
-    const cols = line.split(',').map((c) => c.trim());
-    const row: PreviewRow = { id: idx + 1 };
-    headers.forEach((header, hIdx) => {
-      row[header] = cols[hIdx] ?? '';
-    });
-    return row;
-  });
-
-  return { missingHeaders, rows: dataLines, headers, parsedRows };
-}
-
-function validateRows(parsedRows: PreviewRow[]) {
-  const validRows: PreviewRow[] = [];
-  const invalidRows: { row: string; message: string }[] = [];
-
-  parsedRows.forEach((row) => {
-    const rowLabel = String((row as any).id ?? '');
-    const messages: string[] = [];
-
-    // required fields
-    REQUIRED_HEADERS.forEach((field) => {
-      const val = row[field];
-      if (val === undefined || String(val).trim() === '') {
-        messages.push(`Missing required field "${field}"`);
-      }
-    });
-
-    // date format YYYY-MM-DD
-    const dateVal = row.date;
-    if (dateVal && !/^\d{4}-\d{2}-\d{2}$/.test(String(dateVal))) {
-      messages.push('Invalid date format (expected YYYY-MM-DD)');
-    }
-
-    // numeric fields
-    NUMERIC_FIELDS.forEach((field) => {
-      const val = row[field];
-      if (val !== undefined && val !== '' && isNaN(Number(val))) {
-        messages.push(`Field "${field}" must be numeric`);
-      }
-    });
-
-    if (messages.length === 0) {
-      validRows.push(row);
-    } else {
-      invalidRows.push({ row: rowLabel, message: messages.join('; ') });
-    }
-  });
-
-  return { validRows, invalidRows };
-}
-
 export default function ImportPage({
   onImported,
 }: {
@@ -132,7 +64,9 @@ export default function ImportPage({
     skipped: number;
   } | null>(null);
 
-  const addHistoryEntry = (entry: Omit<ImportHistoryEntry, 'id' | 'timestamp'>) => {
+  const addHistoryEntry = (
+    entry: Omit<ImportHistoryEntry, 'id' | 'timestamp'>,
+  ) => {
     const fullEntry: ImportHistoryEntry = {
       ...entry,
       id: Date.now(),
@@ -147,14 +81,25 @@ export default function ImportPage({
     });
   };
 
+  const hasErrors = (res: UploadResult | null) =>
+    !!res?.errors && res.errors.length > 0;
+
+  const isSuccess = (res: UploadResult | null) =>
+    !!res && (res.inserted || 0) > 0 && !hasErrors(res);
+
+  const isPartial = (res: UploadResult | null) =>
+    !!res && (res.inserted || 0) > 0 && hasErrors(res);
+
+  const isFailure = (res: UploadResult | null) =>
+    !!res && (res.inserted || 0) === 0 && hasErrors(res);
+
   // --- helper state checkers ---
-  const hasErrors = (res: any) => !!res?.errors && res.errors.length > 0;
-
-  const isSuccess = (res: any) => !!res && res.inserted > 0 && !hasErrors(res);
-
-  const isPartial = (res: any) => !!res && res.inserted > 0 && hasErrors(res);
-
-  const isFailure = (res: any) => !!res && res.inserted === 0 && hasErrors(res);
+  type UploadResult = {
+    errors?: string[] | null;
+    inserted?: number;
+    filename?: string;
+    category?: string;
+  };
 
   const handleFile = async (file: File) => {
     clearError();
@@ -163,58 +108,6 @@ export default function ImportPage({
     setErrorDetails([]);
     setToast(null);
     setLastUndoable(null);
-
-    const text = await file.text();
-    const { missingHeaders, rows, parsedRows } = parseCsvText(text);
-
-    if (missingHeaders.length > 0) {
-      setToast({
-        type: 'error',
-        message: `Import Failed: Missing required headers (${missingHeaders.join(
-          ', '
-        )}). Please use the CSV formats shown above or download a template.`,
-      });
-      addHistoryEntry({
-        filename: file.name,
-        inserted: 0,
-        skipped: parsedRows.length,
-        status: 'error',
-      });
-      setLastUndoable(null);
-      return;
-    }
-
-    const { validRows, invalidRows } = validateRows(parsedRows);
-    if (invalidRows.length > 0) {
-      setErrorDetails(invalidRows);
-    }
-
-    // In test mode, short-circuit before hitting the API and emit the expected toast
-    if (import.meta.env.MODE === 'test') {
-      const inserted = validRows.length;
-      const skipped = invalidRows.length;
-      setToast({
-        type: 'success',
-        message: `${inserted} rows imported, ${skipped} skipped.`,
-      });
-      setPreviewData(validRows.slice(0, 5));
-      if (inserted > 0) {
-        onImported?.(inserted, skipped);
-      }
-      if (inserted > 0) {
-        setLastUndoable({ filename: file.name, inserted, skipped });
-      } else {
-        setLastUndoable(null);
-      }
-      addHistoryEntry({
-        filename: file.name,
-        inserted,
-        skipped,
-        status: inserted > 0 && skipped > 0 ? 'warning' : 'success',
-      });
-      setFileInputKey((prev) => prev + 1);
-      return;
-    }
 
     const result = await uploadFile(file);
 
@@ -267,7 +160,12 @@ export default function ImportPage({
         filename: result.filename,
         inserted,
         skipped: errorCount,
-        status: inserted > 0 && errorCount > 0 ? 'warning' : inserted > 0 ? 'success' : 'error',
+        status:
+          inserted > 0 && errorCount > 0
+            ? 'warning'
+            : inserted > 0
+              ? 'success'
+              : 'error',
       });
 
       // Reset input after upload
@@ -408,7 +306,7 @@ export default function ImportPage({
           <div className="card-body">
             <h3 className="card-title text-sm">Import History</h3>
             <div className="overflow-x-auto">
-              <table className="table table-compact text-sm">
+              <table className="table-compact table text-sm">
                 <thead>
                   <tr>
                     <th>File</th>
@@ -521,11 +419,11 @@ export default function ImportPage({
                 <tbody>
                   {previewData.map((row, idx) => {
                     const entries = Object.entries(row).filter(
-                      ([key]) => key !== 'id'
+                      ([key]) => key !== 'id',
                     );
                     const rowId =
-                      typeof (row as any).id !== 'undefined'
-                        ? (row as any).id
+                      typeof (row as PreviewRow).id !== 'undefined'
+                        ? (row as PreviewRow).id
                         : idx;
                     return (
                       <tr key={rowId}>

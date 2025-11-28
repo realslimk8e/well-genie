@@ -6,6 +6,8 @@ export type ExerciseItem = {
   minutes?: number; // if your API uses a different key, we’ll map it below
   duration?: number;
   duration_min?: number;
+  steps?: number;
+  calories_burned?: number;
 };
 
 type ExerciseResponse = { items: ExerciseItem[] };

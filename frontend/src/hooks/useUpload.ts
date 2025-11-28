@@ -41,23 +41,28 @@ export function useUpload() {
 
       setLastResult(response.data);
       return response.data;
-    } catch (err: any) {
-      // Handle validation errors
-      if (err.response?.status === 400 && err.response?.data?.detail) {
-        const detail = err.response.data.detail as UploadError;
-        const errorMessages = detail.errors || [];
-       const partialResult: UploadResult = {
-        message: "Validation failed",
-        filename: file.name,
-        category: "unknown",
-        inserted: 0,
-        errors: errorMessages
-        };
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        if (err.response?.status === 400 && err.response?.data?.detail) {
+          const detail = err.response.data.detail as UploadError;
+          const errorMessages = detail.errors || [];
+          const partialResult: UploadResult = {
+            message: 'Validation failed',
+            filename: file.name,
+            category: 'unknown',
+            inserted: 0,
+            errors: errorMessages,
+          };
 
-        setLastResult(partialResult);
-        return partialResult;
-      } else {
-        setError(err.response?.data?.message || err.message || 'Upload failed');
+          setLastResult(partialResult);
+          return partialResult;
+        } else {
+          setError(
+            err.response?.data?.message || err.message || 'Upload failed',
+          );
+        };
+      } else if (err instanceof Error) {
+        setError(err.message);
       }
       return null;
     } finally {
