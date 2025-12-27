@@ -12,7 +12,7 @@ const defaultSleep: SleepItem[] = [
   { id: 2, date: '2025-03-02', hours: 6, quality: 'fair' },
   { id: 3, date: '2025-03-03', hours: 8, quality: 'poor' },
 ];
-const defaultExercise = [
+const defaultExercise: ExerciseItem[] = [
   { id: 1, date: '2025-03-01', steps: 8000 },
   { id: 2, date: '2025-03-02', steps: 10000 },
   { id: 3, date: '2025-03-03', steps: 7000 },
@@ -57,6 +57,80 @@ const setup = async ({
   diet?: DietItem[];
 }) => {
   vi.resetModules();
+
+  // Mock scrollIntoView to prevent TypeError in jsdom
+  window.HTMLElement.prototype.scrollIntoView = vi.fn();
+
+  // Mock global fetch to simulate backend responses based on test data
+  global.fetch = vi.fn((url: string, options?: RequestInit) => {
+    const urlStr = url.toString();
+
+    // Mock Suggestions Endpoint
+    if (urlStr.endsWith('/suggestions')) {
+      return Promise.resolve({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            suggestions: [
+              'Show hours slept',
+              'Show average daily steps',
+              'Show calories vs 2000 target',
+            ],
+          }),
+      });
+    }
+
+    // Mock Chat Endpoint
+    if (urlStr.endsWith('/chat')) {
+      let message = '';
+      if (options && options.body) {
+        const body = JSON.parse(options.body as string);
+        message = body.message || '';
+      }
+
+      let responseText = "I don't understand.";
+
+      if (/hours slept/i.test(message)) {
+        if (sleep.length === 0) {
+          responseText = 'I do not see any sleep data.';
+        } else {
+          const total = sleep.reduce((acc, item) => acc + item.hours, 0);
+          responseText = `You slept ${total.toFixed(1)} hours in the last 7 days.`;
+        }
+      } else if (/steps/i.test(message)) {
+        if (exercise.length === 0) {
+          responseText = 'There is no steps data.';
+        } else {
+          const total = exercise.reduce(
+            (acc, item) => acc + (item.steps ?? 0),
+            0,
+          );
+          const avg = Math.round(total / exercise.length);
+          responseText = `Your average daily steps were ${avg.toLocaleString()}.`;
+        }
+      } else if (/calories/i.test(message) || /target/i.test(message)) {
+        if (diet.length === 0) {
+          responseText = 'No nutrition data available.';
+        } else {
+          const total = diet.reduce((acc, item) => acc + item.calories, 0);
+          const avg = Math.round(total / diet.length);
+          responseText = `Your avg daily calories were ${avg}. This is calculated as average.`;
+        }
+      }
+
+      return Promise.resolve({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            message: responseText,
+            function_called: null,
+          }),
+      });
+    }
+
+    return Promise.resolve({ ok: false });
+  }) as unknown as typeof fetch;
+
   vi.doMock('../../hooks/useSleep', () => ({
     useSleep: () => ({ items: sleep, loading: false, error: null }),
   }));
@@ -78,7 +152,12 @@ describe('ChatbotPanel predefined intents and fallbacks', () => {
   test('answers three intents with brief calculation explanations', async () => {
     const user = await setup({});
 
-    await user.click(screen.getByRole('button', { name: /hours slept/i }));
+    // Wait for suggestions to load
+    const sleepButton = await screen.findByRole('button', {
+      name: /hours slept/i,
+    });
+    await user.click(sleepButton);
+
     const sleepReplies = await screen.findAllByText(
       /hours in the last 7 days/i,
     );
@@ -87,7 +166,7 @@ describe('ChatbotPanel predefined intents and fallbacks', () => {
     await user.click(
       screen.getByRole('button', { name: /average daily steps/i }),
     );
-    const stepReplies = await screen.findAllByText(/average daily steps/i);
+    const stepReplies = await screen.findAllByText(/average daily steps were/i);
     expect(stepReplies.at(-1)).toHaveTextContent('8,333');
 
     await user.click(
@@ -101,7 +180,12 @@ describe('ChatbotPanel predefined intents and fallbacks', () => {
   test('returns helpful fallback when data is missing', async () => {
     const user = await setup({ sleep: [], exercise: [], diet: [] });
 
-    await user.click(screen.getByRole('button', { name: /hours slept/i }));
+    // Wait for suggestions to load
+    const sleepButton = await screen.findByRole('button', {
+      name: /hours slept/i,
+    });
+    await user.click(sleepButton);
+
     expect(
       await screen.findByText(/do not see any sleep data/i),
     ).toBeInTheDocument();

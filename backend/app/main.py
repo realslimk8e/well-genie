@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from sqlmodel import SQLModel
 from app.routers import sleep, diet, exercise, upload, auth
+from app.routers import chat
 from contextlib import asynccontextmanager
 from app.database import engine
 
@@ -23,6 +24,7 @@ app.include_router(diet.router, prefix="/api")
 app.include_router(exercise.router, prefix="/api")
 app.include_router(upload.router, prefix="/api")
 app.include_router(auth.router, prefix="/api")
+app.include_router(chat.router, prefix="/api", tags=["Chat"])
 
 # --- Routes
 @app.get("/")
