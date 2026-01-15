@@ -61,6 +61,9 @@ const setup = async ({
   // Mock scrollIntoView to prevent TypeError in jsdom
   window.HTMLElement.prototype.scrollIntoView = vi.fn();
 
+  // Mock localStorage to ensure token check passes
+  Storage.prototype.getItem = vi.fn(() => 'mock-token');
+
   // Mock global fetch to simulate backend responses based on test data
   global.fetch = vi.fn((url: string, options?: RequestInit) => {
     const urlStr = url.toString();
