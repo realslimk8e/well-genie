@@ -11,6 +11,11 @@ export default function ChatbotPanel() {
     const fetchSuggestions = async () => {
       try {
         const token = localStorage.getItem('token');
+        if (!token) {
+          console.warn('No auth token found, skipping suggestions fetch');
+          return;
+        }
+
         const response = await fetch('/api/chat/suggestions', {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -34,7 +39,7 @@ export default function ChatbotPanel() {
   }, [messages, loading]);
 
   const handleSend = (text?: string) => {
-    const messageToSend = text || input;
+    const messageToSend = text ?? input;
     if (!messageToSend.trim()) return;
 
     sendMessage(messageToSend);
