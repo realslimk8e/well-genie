@@ -30,6 +30,7 @@ export default function MetricTile({ title, value, unit, delta, deltaTone = "up"
             {bars.map((b, i) => (
               <div
                 key={i}
+                data-testid="metric-bar"
                 className="w-2 rounded-t bg-primary/70"
                 style={{ height: `${Math.max(8, Math.min(100, b))}%` }}
               />

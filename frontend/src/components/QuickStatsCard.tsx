@@ -15,7 +15,7 @@ export default function QuickStatsCard({
         {/* Wrapping layout: items flow nicely at any width */}
         <div className="mt-2 flex flex-wrap gap-x-8 gap-y-3">
           {items.map((it, i) => (
-            <div key={i} className="min-w-[9rem] max-w-full">
+            <div key={i} data-testid="quick-stat-item" className="min-w-[9rem] max-w-full">
               <div className="text-xs md:text-sm text-base-content/70 overflow-hidden text-ellipsis whitespace-nowrap md:whitespace-normal">
                 {it.label}
               </div>

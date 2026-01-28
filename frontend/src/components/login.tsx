@@ -38,7 +38,7 @@ export default function Login({
   };
 
   return (
-    <div className="bg-base-200 fixed inset-0 grid place-items-center p-4">
+    <div className="bg-base-200 fixed inset-0 grid place-items-center p-4" data-testid="login-form">
       <div className="card bg-base-100 w-full max-w-xl shadow-2xl">
         <div className="card-body p-8 md:p-10">
           <h1 className="text-center text-3xl font-bold md:text-4xl">

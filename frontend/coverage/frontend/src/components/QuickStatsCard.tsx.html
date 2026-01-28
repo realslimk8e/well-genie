@@ -23,16 +23,16 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/31</span>
+                <span class='fraction'>31/31</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>1/1</span>
+                <span class='fraction'>4/4</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/31</span>
+                <span class='fraction'>31/31</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -103,80 +103,80 @@
 <a name='L38'></a><a href='#L38'>38</a>
 <a name='L39'></a><a href='#L39'>39</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">12x</span>
+<span class="cline-any cline-yes">12x</span>
+<span class="cline-any cline-yes">12x</span>
+<span class="cline-any cline-yes">12x</span>
+<span class="cline-any cline-yes">12x</span>
+<span class="cline-any cline-yes">12x</span>
+<span class="cline-any cline-yes">12x</span>
+<span class="cline-any cline-yes">12x</span>
+<span class="cline-any cline-yes">12x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">12x</span>
+<span class="cline-any cline-yes">12x</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">type StatItem = { label: string; value: string | number; unit?: string };
 &nbsp;
-<span class="cstat-no" title="statement not covered" >export default function QuickStatsCard({</span>
-<span class="cstat-no" title="statement not covered" >  title,</span>
-<span class="cstat-no" title="statement not covered" >  items,</span>
-<span class="cstat-no" title="statement not covered" >}: {</span>
+export default function QuickStatsCard({
+  title,
+  items,
+}: {
   title: string;
   items: StatItem[];
-<span class="cstat-no" title="statement not covered" >}) {</span>
-<span class="cstat-no" title="statement not covered" >  return (</span>
-<span class="cstat-no" title="statement not covered" >    &lt;div className="card bg-base-100 border border-base-300"&gt;</span>
-<span class="cstat-no" title="statement not covered" >      &lt;div className="card-body p-4 md:p-5"&gt;</span>
-<span class="cstat-no" title="statement not covered" >        &lt;h3 className="card-title text-base md:text-lg"&gt;{title}&lt;/h3&gt;</span>
+}) {
+  return (
+    &lt;div className="card bg-base-100 border border-base-300"&gt;
+      &lt;div className="card-body p-4 md:p-5"&gt;
+        &lt;h3 className="card-title text-base md:text-lg"&gt;{title}&lt;/h3&gt;
 &nbsp;
         {/* Wrapping layout: items flow nicely at any width */}
-<span class="cstat-no" title="statement not covered" >        &lt;div className="mt-2 flex flex-wrap gap-x-8 gap-y-3"&gt;</span>
-<span class="cstat-no" title="statement not covered" >          {items.map((it, i) =&gt; (</span>
-<span class="cstat-no" title="statement not covered" >            &lt;div key={i} className="min-w-[9rem] max-w-full"&gt;</span>
-<span class="cstat-no" title="statement not covered" >              &lt;div className="text-xs md:text-sm text-base-content/70 overflow-hidden text-ellipsis whitespace-nowrap md:whitespace-normal"&gt;</span>
-<span class="cstat-no" title="statement not covered" >                {it.label}</span>
-<span class="cstat-no" title="statement not covered" >              &lt;/div&gt;</span>
-<span class="cstat-no" title="statement not covered" >              &lt;div className="flex items-baseline gap-1"&gt;</span>
-<span class="cstat-no" title="statement not covered" >                &lt;div className="text-2xl md:text-3xl font-semibold leading-none tracking-tight"&gt;</span>
-<span class="cstat-no" title="statement not covered" >                  {it.value}</span>
-<span class="cstat-no" title="statement not covered" >                &lt;/div&gt;</span>
-<span class="cstat-no" title="statement not covered" >                {it.unit ? (</span>
-<span class="cstat-no" title="statement not covered" >                  &lt;span className="text-xs md:text-sm text-base-content/70 whitespace-nowrap"&gt;</span>
-<span class="cstat-no" title="statement not covered" >                    {it.unit}</span>
-<span class="cstat-no" title="statement not covered" >                  &lt;/span&gt;</span>
-<span class="cstat-no" title="statement not covered" >                ) : null}</span>
-<span class="cstat-no" title="statement not covered" >              &lt;/div&gt;</span>
-<span class="cstat-no" title="statement not covered" >            &lt;/div&gt;</span>
-<span class="cstat-no" title="statement not covered" >          ))}</span>
-<span class="cstat-no" title="statement not covered" >        &lt;/div&gt;</span>
-<span class="cstat-no" title="statement not covered" >      &lt;/div&gt;</span>
-<span class="cstat-no" title="statement not covered" >    &lt;/div&gt;</span>
+        &lt;div className="mt-2 flex flex-wrap gap-x-8 gap-y-3"&gt;
+          {items.map((it, i) =&gt; (
+            &lt;div key={i} data-testid="quick-stat-item" className="min-w-[9rem] max-w-full"&gt;
+              &lt;div className="text-xs md:text-sm text-base-content/70 overflow-hidden text-ellipsis whitespace-nowrap md:whitespace-normal"&gt;
+                {it.label}
+              &lt;/div&gt;
+              &lt;div className="flex items-baseline gap-1"&gt;
+                &lt;div className="text-2xl md:text-3xl font-semibold leading-none tracking-tight"&gt;
+                  {it.value}
+                &lt;/div&gt;
+                {it.unit ? (
+                  &lt;span className="text-xs md:text-sm text-base-content/70 whitespace-nowrap"&gt;
+                    {it.unit}
+                  &lt;/span&gt;
+                ) : null}
+              &lt;/div&gt;
+            &lt;/div&gt;
+          ))}
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
   );
-<span class="cstat-no" title="statement not covered" >}</span>
+}
 &nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
@@ -184,7 +184,7 @@
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-01-15T01:17:23.647Z
+                at 2026-01-28T04:30:12.989Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>
