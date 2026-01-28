@@ -1,4 +1,5 @@
-import { expect as vitestExpect } from 'vitest';
+import { expect as vitestExpect, afterEach } from 'vitest';
+import { cleanup } from '@testing-library/react';
 
 // expose Vitest's expect globally before jest-dom runs
 // @ts-ignore
@@ -13,3 +14,7 @@ globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 // import jest-dom after global expect is set
 // @ts-ignore
 await import('@testing-library/jest-dom');
+
+afterEach(() => {
+  cleanup();
+});
