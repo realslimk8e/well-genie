@@ -1,12 +1,5 @@
 
-type NavKey =
-  | 'overview'
-  | 'sleep'
-  | 'diet'
-  | 'exercise'
-  | 'chatbot'
-  | 'settings'
-  | 'import';
+import { type NavKey } from '../features/navigation/nav';
 
 export default function Sidebar({
   current,

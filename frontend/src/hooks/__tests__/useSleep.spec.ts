@@ -1,11 +1,14 @@
 import { renderHook, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import axios from 'axios';
 import { useSleep } from '../useSleep';
+
+vi.mock('axios');
+const mockedAxios = axios as vi.Mocked<typeof axios>;
 
 describe('useSleep', () => {
     beforeEach(() => {
-        // Mock global fetch before each test
-        global.fetch = vi.fn();
+        vi.clearAllMocks();
     });
 
     afterEach(() => {
@@ -13,7 +16,7 @@ describe('useSleep', () => {
     });
 
     it('should return initial loading state', () => {
-        (global.fetch as vi.Mock).mockResolvedValueOnce(new Response(JSON.stringify({ items: [] }), { status: 200 }));
+        mockedAxios.get.mockResolvedValueOnce({ data: { items: [] } } as never);
         const { result } = renderHook(() => useSleep());
 
         expect(result.current.items).toEqual([]);
@@ -26,7 +29,7 @@ describe('useSleep', () => {
             { id: 1, date: '2023-01-01', hours: 7.5, quality: 'good' },
             { id: 2, date: '2023-01-02', hours: 8, quality: 'excellent' },
         ];
-        (global.fetch as vi.Mock).mockResolvedValueOnce(new Response(JSON.stringify({ items: mockSleepItems }), { status: 200 }));
+        mockedAxios.get.mockResolvedValueOnce({ data: { items: mockSleepItems } } as never);
 
         const { result } = renderHook(() => useSleep());
 
@@ -37,7 +40,7 @@ describe('useSleep', () => {
     });
 
     it('should handle fetch error', async () => {
-        (global.fetch as vi.Mock).mockResolvedValueOnce(new Response(null, { status: 401, statusText: 'Unauthorized' }));
+        mockedAxios.get.mockRejectedValueOnce(new Error('HTTP 401'));
 
         const { result } = renderHook(() => useSleep());
 
@@ -49,7 +52,7 @@ describe('useSleep', () => {
     });
 
     it('should handle network error', async () => {
-        (global.fetch as vi.Mock).mockRejectedValueOnce(new TypeError('Network request failed'));
+        mockedAxios.get.mockRejectedValueOnce(new TypeError('Network request failed'));
 
         const { result } = renderHook(() => useSleep());
 
@@ -64,11 +67,11 @@ describe('useSleep', () => {
         const mockSleepItems = [
             { id: 1, date: '2023-01-01', hours: 7.5, quality: 'good' },
         ];
-        let resolveFetch: (value: Response) => void;
-        (global.fetch as vi.Mock).mockReturnValueOnce(
+        let resolveRequest: (value: unknown) => void;
+        mockedAxios.get.mockReturnValueOnce(
             new Promise(resolve => {
-                resolveFetch = resolve;
-            })
+                resolveRequest = resolve;
+            }) as never
         );
 
         const { result, unmount } = renderHook(() => useSleep());
@@ -79,8 +82,8 @@ describe('useSleep', () => {
         // Unmount the component
         unmount();
 
-        // Resolve the fetch promise
-        resolveFetch!(new Response(JSON.stringify({ items: mockSleepItems }), { status: 200 }));
+        // Resolve the request promise
+        resolveRequest!({ data: { items: mockSleepItems } });
 
         // Wait a bit to ensure any potential state updates would have happened
         await new Promise(resolve => setTimeout(resolve, 100));

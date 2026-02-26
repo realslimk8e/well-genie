@@ -2,7 +2,7 @@ import { render, screen, cleanup, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
 import axios from 'axios';
-import ImportPage from '../../components/import';
+import ImportPage from '../../components/ImportPage';
 import * as UploadHook from '../../hooks/useUpload';
 
 vi.mock('axios');

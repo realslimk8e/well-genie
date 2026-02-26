@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { apiClient } from '../lib/apiClient';
 
 export type DietItem = {
   id: number;
@@ -19,13 +20,10 @@ export function useDiet() {
 
   useEffect(() => {
     let alive = true;
-    fetch('/api/diet', { credentials: 'include' })
-      .then((r) => {
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        return r.json() as Promise<DietResponse>;
-      })
-      .then((json) => {
-        if (alive) setItems(json.items ?? []);
+    apiClient
+      .get<DietResponse>('/api/diet')
+      .then((response) => {
+        if (alive) setItems(response.data.items ?? []);
       })
       .catch((e) => {
         if (alive) setError(e);

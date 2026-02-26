@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { apiClient } from '../lib/apiClient';
 
 export type SleepItem = {
   id: number;
@@ -16,13 +17,10 @@ export function useSleep() {
 
   useEffect(() => {
     let alive = true;
-    fetch('/api/sleep', { credentials: 'include' })
-      .then((r) => {
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        return r.json() as Promise<SleepResponse>;
-      })
-      .then((json) => {
-        if (alive) setItems(json.items ?? []);
+    apiClient
+      .get<SleepResponse>('/api/sleep')
+      .then((response) => {
+        if (alive) setItems(response.data.items ?? []);
       })
       .catch((e) => {
         if (alive) setError(e);

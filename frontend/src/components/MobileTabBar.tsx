@@ -1,18 +1,20 @@
-type NavKey = 'overview' | 'sleep' | 'diet' | 'exercise' | 'chatbot';
+import { mobileTabs } from '../features/navigation/nav';
+
+type MobileNavKey = (typeof mobileTabs)[number];
 
 export default function MobileTabBar({
   current,
   onNavigate,
 }: {
-  current: NavKey;
-  onNavigate: (k: NavKey) => void;
+  current: MobileNavKey;
+  onNavigate: (k: MobileNavKey) => void;
 }) {
   const Item = ({
     k,
     label,
     emoji,
   }: {
-    k: NavKey;
+    k: MobileNavKey;
     label: string;
     emoji: string;
   }) => {

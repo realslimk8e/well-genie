@@ -1,11 +1,14 @@
 import { renderHook, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import axios from 'axios';
 import { useDiet } from '../useDiet';
+
+vi.mock('axios');
+const mockedAxios = axios as vi.Mocked<typeof axios>;
 
 describe('useDiet', () => {
     beforeEach(() => {
-        // Mock global fetch before each test
-        global.fetch = vi.fn();
+        vi.clearAllMocks();
     });
 
     afterEach(() => {
@@ -13,7 +16,7 @@ describe('useDiet', () => {
     });
 
     it('should return initial loading state', async () => {
-        (global.fetch as vi.Mock).mockResolvedValueOnce(new Response(JSON.stringify({ items: [] }), { status: 200 }));
+        mockedAxios.get.mockResolvedValueOnce({ data: { items: [] } } as never);
         const { result } = renderHook(() => useDiet());
 
         expect(result.current.items).toEqual([]);
@@ -25,7 +28,7 @@ describe('useDiet', () => {
         const mockDietItems = [
             { id: 1, date: '2023-01-01', score: 80, protein_g: 50, carbs_g: 100, fat_g: 20, calories: 1000 },
         ];
-        (global.fetch as vi.Mock).mockResolvedValueOnce(new Response(JSON.stringify({ items: mockDietItems }), { status: 200 }));
+        mockedAxios.get.mockResolvedValueOnce({ data: { items: mockDietItems } } as never);
 
         const { result } = renderHook(() => useDiet());
 
@@ -36,7 +39,7 @@ describe('useDiet', () => {
     });
 
     it('should handle fetch error', async () => {
-        (global.fetch as vi.Mock).mockResolvedValueOnce(new Response(null, { status: 404, statusText: 'Not Found' }));
+        mockedAxios.get.mockRejectedValueOnce(new Error('HTTP 404'));
 
         const { result } = renderHook(() => useDiet());
 
@@ -48,7 +51,7 @@ describe('useDiet', () => {
     });
 
     it('should handle network error', async () => {
-        (global.fetch as vi.Mock).mockRejectedValueOnce(new TypeError('Network request failed'));
+        mockedAxios.get.mockRejectedValueOnce(new TypeError('Network request failed'));
 
         const { result } = renderHook(() => useDiet());
 
@@ -63,11 +66,11 @@ describe('useDiet', () => {
         const mockDietItems = [
             { id: 1, date: '2023-01-01', score: 80, protein_g: 50, carbs_g: 100, fat_g: 20, calories: 1000 },
         ];
-        let resolveFetch: (value: Response) => void;
-        (global.fetch as vi.Mock).mockReturnValueOnce(
+        let resolveRequest: (value: unknown) => void;
+        mockedAxios.get.mockReturnValueOnce(
             new Promise(resolve => {
-                resolveFetch = resolve;
-            })
+                resolveRequest = resolve;
+            }) as never
         );
 
         const { result, unmount } = renderHook(() => useDiet());
@@ -78,8 +81,8 @@ describe('useDiet', () => {
         // Unmount the component
         unmount();
 
-        // Resolve the fetch promise
-        resolveFetch!(new Response(JSON.stringify({ items: mockDietItems }), { status: 200 }));
+        // Resolve the request promise
+        resolveRequest!({ data: { items: mockDietItems } });
 
         // Wait a bit to ensure any potential state updates would have happened
         await new Promise(resolve => setTimeout(resolve, 100));
