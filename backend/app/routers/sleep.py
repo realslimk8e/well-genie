@@ -4,6 +4,7 @@ from sqlmodel import Session, select
 from app.database import get_session
 from app.models import SleepEntry
 from app.routers.auth import get_current_user, User
+from app.services.delete import delete_sleep_records
 
 router = APIRouter()
 
@@ -31,3 +32,14 @@ async def get_sleep_entries(
     entries = session.exec(query).all()
     
     return {"items": entries}
+
+
+@router.delete("/sleep")
+async def delete_sleep_entries(
+    start_date: date,
+    end_date: date,
+    session: Session = Depends(get_session),
+):
+    """Delete sleep entries within a date range."""
+    deleted_count = delete_sleep_records(session, start_date, end_date)
+    return {"message": f"Successfully deleted {deleted_count} sleep entries."}
