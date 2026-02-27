@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { apiClient } from '../lib/apiClient';
 
 export type SleepItem = {
@@ -15,23 +15,25 @@ export function useSleep() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<unknown>(null);
 
-  useEffect(() => {
-    let alive = true;
+  const refetch = useCallback(() => {
+    setLoading(true);
     apiClient
       .get<SleepResponse>('/api/sleep')
       .then((response) => {
-        if (alive) setItems(response.data.items ?? []);
+        setItems(response.data.items ?? []);
+        setError(null);
       })
       .catch((e) => {
-        if (alive) setError(e);
+        setError(e);
       })
       .finally(() => {
-        if (alive) setLoading(false);
+        setLoading(false);
       });
-    return () => {
-      alive = false;
-    };
   }, []);
 
-  return { items, loading, error };
+  useEffect(() => {
+    refetch();
+  }, [refetch]);
+
+  return { items, loading, error, refetch };
 }

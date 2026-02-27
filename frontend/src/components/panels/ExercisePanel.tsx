@@ -1,20 +1,23 @@
-import { useExercise } from "../../hooks/useExercise";
-import { useMemo, useState } from "react";
-import DateRangeFilter from "../filters/DateRangeFilter";
-import { filterByDateRange } from "../../utils/filterByDateRange";
+import { useExercise } from '../../hooks/useExercise';
+import { useMemo, useState } from 'react';
+import DateRangeFilter from '../filters/DateRangeFilter';
+import { filterByDateRange } from '../../utils/filterByDateRange';
 
 type ExItem = {
   id: number;
-  date: string;              // "YYYY-MM-DD"
-  duration_min?: number;     // minutes
-  minutes?: number;          // fallback keys if backend changes
+  date: string; // "YYYY-MM-DD"
+  duration_min?: number; // minutes
+  minutes?: number; // fallback keys if backend changes
   duration?: number;
   calories_burned?: number;
   steps?: number;
 };
 
-const fmtWeekday = new Intl.DateTimeFormat(undefined, { weekday: "short" });
-const fmtDate = new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric" });
+const fmtWeekday = new Intl.DateTimeFormat(undefined, { weekday: 'short' });
+const fmtDate = new Intl.DateTimeFormat(undefined, {
+  month: 'short',
+  day: 'numeric',
+});
 
 const getMin = (x: ExItem) =>
   Number(x.duration_min ?? x.minutes ?? x.duration ?? 0);
@@ -22,7 +25,7 @@ const getMin = (x: ExItem) =>
 const getCals = (x: ExItem) => Number(x.calories_burned ?? 0);
 const getSteps = (x: ExItem) => Number(x.steps ?? 0);
 
-type ViewMode = "daily" | "weekly" | "monthly";
+type ViewMode = 'daily' | 'weekly' | 'monthly';
 
 const startOfWeek = (d: Date) => {
   const date = new Date(d);
@@ -41,41 +44,50 @@ const startOfMonth = (d: Date) => {
 };
 
 const formatLabel = (date: Date, view: ViewMode) => {
-  if (view === "daily") return date.toLocaleDateString();
-  if (view === "weekly") return `Week of ${date.toLocaleDateString()}`;
-  const month = date.toLocaleString(undefined, { month: "short" });
+  if (view === 'daily') return date.toLocaleDateString();
+  if (view === 'weekly') return `Week of ${date.toLocaleDateString()}`;
+  const month = date.toLocaleString(undefined, { month: 'short' });
   return `${month} ${date.getFullYear()}`;
 };
 
 const aggregateExercise = (items: ExItem[], view: ViewMode) => {
-  const groups = new Map<string, { label: string; minutes: number; calories: number; steps: number }>();
+  const groups = new Map<
+    string,
+    { label: string; minutes: number; calories: number; steps: number }
+  >();
 
   items.forEach((item) => {
     const d = new Date(item.date);
     const bucket =
-      view === "daily"
+      view === 'daily'
         ? new Date(d.getFullYear(), d.getMonth(), d.getDate())
-        : view === "weekly"
-        ? startOfWeek(d)
-        : startOfMonth(d);
+        : view === 'weekly'
+          ? startOfWeek(d)
+          : startOfMonth(d);
     const key = bucket.toISOString();
     const label = formatLabel(bucket, view);
-    const entry =
-      groups.get(key) ?? { label, minutes: 0, calories: 0, steps: 0 };
+    const entry = groups.get(key) ?? {
+      label,
+      minutes: 0,
+      calories: 0,
+      steps: 0,
+    };
     entry.minutes += getMin(item);
     entry.calories += getCals(item);
     entry.steps += getSteps(item);
     groups.set(key, entry);
   });
 
-  return Array.from(groups.values()).sort((a, b) => a.label.localeCompare(b.label));
+  return Array.from(groups.values()).sort((a, b) =>
+    a.label.localeCompare(b.label),
+  );
 };
 
 export default function ExercisePanel() {
   const { items, loading, error } = useExercise();
-  const [view, setView] = useState<ViewMode>("daily");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  const [view, setView] = useState<ViewMode>('daily');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
 
   const filteredItems = useMemo(() => {
     return filterByDateRange(items as ExItem[], startDate, endDate);
@@ -95,7 +107,10 @@ export default function ExercisePanel() {
     ? Math.round(last7.reduce((s, it) => s + getSteps(it), 0) / last7.length)
     : 0;
 
-  const aggregates = useMemo(() => aggregateExercise(filteredItems, view), [filteredItems, view]);
+  const aggregates = useMemo(
+    () => aggregateExercise(filteredItems, view),
+    [filteredItems, view],
+  );
 
   const minuteValues = filteredItems.map((r) => getMin(r));
   const aggMetrics =
@@ -103,19 +118,20 @@ export default function ExercisePanel() {
       ? null
       : {
           sum: minuteValues.reduce((s, n) => s + n, 0),
-          avg: minuteValues.reduce((s, n) => s + n, 0) / minuteValues.length || 0,
+          avg:
+            minuteValues.reduce((s, n) => s + n, 0) / minuteValues.length || 0,
           min: Math.min(...minuteValues),
           max: Math.max(...minuteValues),
         };
 
   if (loading) {
     return (
-      <div className="card bg-base-100 border border-base-300">
+      <div className="card bg-base-100 border-base-300 border">
         <div className="card-body">
           <h2 className="card-title">Exercise</h2>
           <div className="flex items-center gap-2">
             <span className="loading loading-spinner loading-sm" />
-            <span className="text-sm text-base-content/70">Loading…</span>
+            <span className="text-base-content/70 text-sm">Loading…</span>
           </div>
         </div>
       </div>
@@ -124,10 +140,12 @@ export default function ExercisePanel() {
 
   if (error) {
     return (
-      <div className="card bg-base-100 border border-base-300">
+      <div className="card bg-base-100 border-base-300 border">
         <div className="card-body">
           <h2 className="card-title">Exercise</h2>
-          <div className="alert alert-error text-sm">Failed to load exercise data.</div>
+          <div className="alert alert-error text-sm">
+            Failed to load exercise data.
+          </div>
         </div>
       </div>
     );
@@ -155,7 +173,7 @@ export default function ExercisePanel() {
       </div>
 
       {/* 7-day breakdown */}
-      <div className="card bg-base-100 border border-base-300">
+      <div className="card bg-base-100 border-base-300 border">
         <div className="card-body">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <h3 className="card-title text-base">Last 7 days</h3>
@@ -165,13 +183,13 @@ export default function ExercisePanel() {
               onStartDateChange={setStartDate}
               onEndDateChange={setEndDate}
               onClear={() => {
-                setStartDate("");
-                setEndDate("");
+                setStartDate('');
+                setEndDate('');
               }}
             />
           </div>
           <div className="overflow-x-auto">
-            <table className="table table-zebra">
+            <table className="table-zebra table">
               <thead>
                 <tr>
                   <th className="w-28">Day</th>
@@ -185,23 +203,30 @@ export default function ExercisePanel() {
                   const d = new Date(row.date);
                   return (
                     <tr key={row.id}>
-                      <td>{fmtWeekday.format(d)}, {fmtDate.format(d)}</td>
+                      <td>
+                        {fmtWeekday.format(d)}, {fmtDate.format(d)}
+                      </td>
                       <td className="text-right">{getMin(row)}</td>
                       <td className="text-right">{getCals(row)}</td>
-                      <td className="text-right">{getSteps(row).toLocaleString()}</td>
+                      <td className="text-right">
+                        {getSteps(row).toLocaleString()}
+                      </td>
                     </tr>
                   );
                 })}
                 {last7.length === 0 && (
                   <tr>
-                    <td colSpan={4} className="text-base-content/70 text-center">
+                    <td
+                      colSpan={4}
+                      className="text-base-content/70 text-center"
+                    >
                       No exercise entries in the selected date range.
                     </td>
                   </tr>
                 )}
               </tbody>
             </table>
-            <div className="text-xs opacity-70 mt-2">
+            <div className="mt-2 text-xs opacity-70">
               Showing the most recent 7 entries within the selected range.
             </div>
           </div>
@@ -209,15 +234,15 @@ export default function ExercisePanel() {
       </div>
 
       {/* Aggregated views */}
-      <div className="card bg-base-100 border border-base-300">
+      <div className="card bg-base-100 border-base-300 border">
         <div className="card-body">
           <div className="flex items-center justify-between">
             <h3 className="card-title text-base">Aggregated summaries</h3>
             <div className="join">
-              {(["daily", "weekly", "monthly"] as ViewMode[]).map((mode) => (
+              {(['daily', 'weekly', 'monthly'] as ViewMode[]).map((mode) => (
                 <button
                   key={mode}
-                  className={`btn btn-xs join-item ${view === mode ? "btn-primary" : "btn-ghost"}`}
+                  className={`btn btn-xs join-item ${view === mode ? 'btn-primary' : 'btn-ghost'}`}
                   onClick={() => setView(mode)}
                 >
                   {mode[0].toUpperCase() + mode.slice(1)}
@@ -227,7 +252,7 @@ export default function ExercisePanel() {
           </div>
 
           <div className="overflow-x-auto">
-            <table className="table table-compact">
+            <table className="table-compact table">
               <thead>
                 <tr>
                   <th>Period</th>
@@ -247,7 +272,10 @@ export default function ExercisePanel() {
                 ))}
                 {aggregates.length === 0 && (
                   <tr>
-                    <td colSpan={4} className="text-base-content/70 text-center">
+                    <td
+                      colSpan={4}
+                      className="text-base-content/70 text-center"
+                    >
                       No aggregated data in the selected date range.
                     </td>
                   </tr>

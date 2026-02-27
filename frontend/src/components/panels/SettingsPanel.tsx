@@ -5,6 +5,7 @@ import {
   type SleepUnit,
   type UserPreferences,
 } from '../../hooks/usePreferences';
+import DataManagementPanel from './DataManagementPanel';
 
 type Props = {
   preferences: UserPreferences;
@@ -101,10 +102,18 @@ export default function SettingsPanel({
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <button type="button" className="btn btn-primary btn-sm" onClick={handleSave}>
+          <button
+            type="button"
+            className="btn btn-primary btn-sm"
+            onClick={handleSave}
+          >
             Save preferences
           </button>
-          <button type="button" className="btn btn-outline btn-sm" onClick={handleReset}>
+          <button
+            type="button"
+            className="btn btn-outline btn-sm"
+            onClick={handleReset}
+          >
             Reset defaults
           </button>
           {savedMessage && (
@@ -113,6 +122,9 @@ export default function SettingsPanel({
             </span>
           )}
         </div>
+
+        <div className="divider"></div>
+        <DataManagementPanel />
       </div>
     </div>
   );
