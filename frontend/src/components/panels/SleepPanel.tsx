@@ -80,13 +80,11 @@ const aggregateSleep = (items: SleepItem[], view: ViewMode) => {
           : startOfMonth(d);
     const key = bucket.toISOString();
     const label = formatLabel(bucket, view);
-    const entry =
-      groups.get(key) ??
-      {
-        label,
-        hours: 0,
-        qualityScores: [],
-      };
+    const entry = groups.get(key) ?? {
+      label,
+      hours: 0,
+      qualityScores: [],
+    };
     entry.hours += item.hours ?? 0;
     entry.qualityScores.push(qualityToScore[item.quality]);
     groups.set(key, entry);
@@ -129,8 +127,7 @@ export default function SleepPanel() {
       ? null
       : {
           sum: hourValues.reduce((s, n) => s + n, 0),
-          avg:
-            hourValues.reduce((s, n) => s + n, 0) / hourValues.length || 0,
+          avg: hourValues.reduce((s, n) => s + n, 0) / hourValues.length || 0,
           min: Math.min(...hourValues),
           max: Math.max(...hourValues),
         };
@@ -227,7 +224,10 @@ export default function SleepPanel() {
                 })}
                 {last7.length === 0 && (
                   <tr>
-                    <td colSpan={3} className="text-base-content/70 text-center">
+                    <td
+                      colSpan={3}
+                      className="text-base-content/70 text-center"
+                    >
                       No sleep entries in the selected date range.
                     </td>
                   </tr>
@@ -260,7 +260,7 @@ export default function SleepPanel() {
           </div>
 
           <div className="overflow-x-auto">
-            <table className="table table-compact">
+            <table className="table-compact table">
               <thead>
                 <tr>
                   <th>Period</th>
@@ -289,7 +289,10 @@ export default function SleepPanel() {
                 })}
                 {aggregates.length === 0 && (
                   <tr>
-                    <td colSpan={3} className="text-base-content/70 text-center">
+                    <td
+                      colSpan={3}
+                      className="text-base-content/70 text-center"
+                    >
                       No aggregated data in the selected date range.
                     </td>
                   </tr>

@@ -226,7 +226,10 @@ export default function DietPanel() {
                 })}
                 {last7.length === 0 && (
                   <tr>
-                    <td colSpan={5} className="text-base-content/70 text-center">
+                    <td
+                      colSpan={5}
+                      className="text-base-content/70 text-center"
+                    >
                       No diet entries in the selected date range.
                     </td>
                   </tr>
@@ -281,7 +284,10 @@ export default function DietPanel() {
                 ))}
                 {aggregates.length === 0 && (
                   <tr>
-                    <td colSpan={5} className="text-base-content/70 text-center">
+                    <td
+                      colSpan={5}
+                      className="text-base-content/70 text-center"
+                    >
                       No aggregated data in the selected date range.
                     </td>
                   </tr>
