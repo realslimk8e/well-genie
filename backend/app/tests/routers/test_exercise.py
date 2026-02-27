@@ -163,22 +163,35 @@ class TestGetExerciseEntriesWithMinCaloriesBurned:
         # Verify all returned entries have calories_burned >= 400
         for entry in data["items"]:
             assert entry["calories_burned"] >= 400
+class TestDeleteExerciseEntries:
+    """Test DELETE /api/exercise"""
+    def test_deletes_entries_in_date_range(self, client: TestClient, exercise_entries):
+        """
+        Verify entries within the date range are deleted.
+        """
+        response = client.delete("/api/exercise?start_date=2024-01-03&end_date=2024-01-05")
+        assert response.status_code == 200
+        data = response.json()
+        assert data["message"] == "Successfully deleted 3 exercise entries."
 
+        response = client.get("/api/exercise")
+        data = response.json()
+        
+        assert len(data["items"]) == 4
+        returned_dates = {entry["date"] for entry in data["items"]}
+        assert "2024-01-03" not in returned_dates
+        assert "2024-01-04" not in returned_dates
+        assert "2024-01-05" not in returned_dates
 
 class TestGetExerciseEntriesWithMultipleFilters:
     """Test GET /api/exercise with multiple filters combined"""
-    
     def test_combines_multiple_filters(self, client: TestClient, exercise_entries):
         """Verify multiple filters work together correctly"""
-        response = client.get(
-            "/api/exercise?start_date=2024-01-03&end_date=2024-01-06&min_steps=8000&duration_min=45&min_calories_burned=400"
-        )
+        response = client.get("/api/exercise?start_date=2024-01-03&end_date=2024-01-06&min_steps=8000&duration_min=45&min_calories_burned=400")
         data = response.json()
-        
+
         assert response.status_code == 200
         assert len(data["items"]) == 3
-        
-        # Verify all filters are applied
         for entry in data["items"]:
             assert entry["date"] >= "2024-01-03"
             assert entry["date"] <= "2024-01-06"

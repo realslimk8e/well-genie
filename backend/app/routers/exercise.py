@@ -4,6 +4,7 @@ from sqlmodel import Session, select
 from app.database import get_session
 from app.models import ExerciseEntry
 from app.routers.auth import get_current_user, User
+from app.services.delete import delete_exercise_records
 
 router = APIRouter()
 
@@ -34,3 +35,14 @@ async def get_exercise_entries(
     entries = session.exec(query).all()
     
     return {"items": entries}
+
+
+@router.delete("/exercise")
+async def delete_exercise_entries(
+    start_date: date,
+    end_date: date,
+    session: Session = Depends(get_session),
+):
+    """Delete exercise entries within a date range."""
+    deleted_count = delete_exercise_records(session, start_date, end_date)
+    return {"message": f"Successfully deleted {deleted_count} exercise entries."}

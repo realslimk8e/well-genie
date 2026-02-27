@@ -4,6 +4,7 @@ from sqlmodel import Session, select
 from app.database import get_session
 from app.models import DietEntry
 from app.routers.auth import get_current_user, User
+from app.services.delete import delete_diet_records
 
 router = APIRouter()
 
@@ -29,3 +30,14 @@ async def get_diet_entries(
     entries = session.exec(query).all()
     
     return {"items": entries}
+
+
+@router.delete("/diet")
+async def delete_diet_entries(
+    start_date: date,
+    end_date: date,
+    session: Session = Depends(get_session),
+):
+    """Delete diet entries within a date range."""
+    deleted_count = delete_diet_records(session, start_date, end_date)
+    return {"message": f"Successfully deleted {deleted_count} diet entries."}

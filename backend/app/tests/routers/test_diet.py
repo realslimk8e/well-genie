@@ -142,3 +142,30 @@ class TestGetDietEntriesWithMultipleFilters:
             # but can be kept for explicit verification.
             assert "2024-01-04" <= entry["date"] <= "2024-01-06"
             assert 2000 <= entry["calories"] <= 2500
+
+
+class TestDeleteDietEntries:
+    """Test DELETE /api/diet"""
+
+    def test_deletes_entries_in_date_range(self, client: TestClient, diet_entries):
+        """
+        Verify entries within the date range are deleted.
+        """
+        # Assuming diet_entries fixture creates 7 entries for dates 2024-01-01 to 2024-01-07
+        response = client.delete("/api/diet?start_date=2024-01-03&end_date=2024-01-05")
+
+        assert response.status_code == 200
+        data = response.json()
+        # Deleting 3 entries (Jan 3, 4, 5)
+        assert data["message"] == "Successfully deleted 3 diet entries."
+
+        # Verify that the entries are actually deleted by fetching again
+        response = client.get("/api/diet")
+        data = response.json()
+        # 7 initial entries - 3 deleted = 4 remaining
+        assert len(data["items"]) == 4
+
+        returned_dates = {entry["date"] for entry in data["items"]}
+        assert "2024-01-03" not in returned_dates
+        assert "2024-01-04" not in returned_dates
+        assert "2024-01-05" not in returned_dates

@@ -168,3 +168,23 @@ class TestGetSleepEntriesWithMultipleFilters:
             assert entry["date"] <= "2024-01-05"
             assert entry["hours"] >= 8.0
             assert entry["quality"] == "excellent"
+
+class TestDeleteSleepEntries:
+    """Test DELETE /api/sleep"""
+    def test_deletes_entries_in_date_range(self, client: TestClient, sleep_entries):
+        """
+        Verify entries within the date range are deleted.
+        """
+        response = client.delete("/api/sleep?start_date=2024-01-03&end_date=2024-01-05")
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["message"] == "Successfully deleted 3 sleep entries."
+
+        response = client.get("/api/sleep")
+        data = response.json()
+        assert len(data["items"]) == 4
+        returned_dates = {entry["date"] for entry in data["items"]}
+        assert "2024-01-03" not in returned_dates
+        assert "2024-01-04" not in returned_dates
+        assert "2024-01-05" not in returned_dates
