@@ -1,5 +1,7 @@
 import { useSleep } from '../../hooks/useSleep';
 import { useMemo, useState } from 'react';
+import DateRangeFilter from '../filters/DateRangeFilter';
+import { filterByDateRange } from '../../utils/filterByDateRange';
 
 type SleepItem = {
   id: number;
@@ -98,8 +100,14 @@ const aggregateSleep = (items: SleepItem[], view: ViewMode) => {
 export default function SleepPanel() {
   const { items, loading, error } = useSleep();
   const [view, setView] = useState<ViewMode>('daily');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
 
-  const last7 = items.slice(-7) as SleepItem[];
+  const filteredItems = useMemo(() => {
+    return filterByDateRange(items as SleepItem[], startDate, endDate);
+  }, [items, startDate, endDate]);
+
+  const last7 = filteredItems.slice(-7);
   const avgHours = last7.length
     ? (last7.reduce((s, r) => s + (r.hours ?? 0), 0) / last7.length).toFixed(1)
     : '0.0';
@@ -111,11 +119,11 @@ export default function SleepPanel() {
   const avgQuality = scoreToQuality(avgQualityScore);
 
   const aggregates = useMemo(
-    () => aggregateSleep(items as SleepItem[], view),
-    [items, view],
+    () => aggregateSleep(filteredItems, view),
+    [filteredItems, view],
   );
 
-  const hourValues = (items as SleepItem[]).map((r) => r.hours ?? 0);
+  const hourValues = filteredItems.map((r) => r.hours ?? 0);
   const aggMetrics =
     hourValues.length === 0
       ? null
@@ -176,7 +184,19 @@ export default function SleepPanel() {
       {/* 7-day breakdown */}
       <div className="card bg-base-100 border-base-300 border">
         <div className="card-body">
-          <h3 className="card-title text-base">Last 7 days</h3>
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <h3 className="card-title text-base">Last 7 days</h3>
+            <DateRangeFilter
+              startDate={startDate}
+              endDate={endDate}
+              onStartDateChange={setStartDate}
+              onEndDateChange={setEndDate}
+              onClear={() => {
+                setStartDate('');
+                setEndDate('');
+              }}
+            />
+          </div>
           <div className="overflow-x-auto">
             <table className="table-zebra table">
               <thead>
@@ -205,10 +225,17 @@ export default function SleepPanel() {
                     </tr>
                   );
                 })}
+                {last7.length === 0 && (
+                  <tr>
+                    <td colSpan={3} className="text-base-content/70 text-center">
+                      No sleep entries in the selected date range.
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
             <div className="mt-2 text-xs opacity-70">
-              Showing the most recent 7 entries.
+              Showing the most recent 7 entries within the selected range.
             </div>
           </div>
         </div>
@@ -260,6 +287,13 @@ export default function SleepPanel() {
                     </tr>
                   );
                 })}
+                {aggregates.length === 0 && (
+                  <tr>
+                    <td colSpan={3} className="text-base-content/70 text-center">
+                      No aggregated data in the selected date range.
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
             {aggMetrics && (
