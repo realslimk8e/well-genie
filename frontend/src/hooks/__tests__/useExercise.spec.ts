@@ -1,11 +1,14 @@
 import { renderHook, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import axios from 'axios';
 import { useExercise } from '../useExercise';
+
+vi.mock('axios');
+const mockedAxios = axios as vi.Mocked<typeof axios>;
 
 describe('useExercise', () => {
     beforeEach(() => {
-        // Mock global fetch before each test
-        global.fetch = vi.fn();
+        vi.clearAllMocks();
     });
 
     afterEach(() => {
@@ -13,7 +16,7 @@ describe('useExercise', () => {
     });
 
     it('should return initial loading state', () => {
-        (global.fetch as vi.Mock).mockResolvedValueOnce(new Response(JSON.stringify({ items: [] }), { status: 200 }));
+        mockedAxios.get.mockResolvedValueOnce({ data: { items: [] } } as never);
         const { result } = renderHook(() => useExercise());
 
         expect(result.current.items).toEqual([]);
@@ -25,7 +28,7 @@ describe('useExercise', () => {
         const mockExerciseItems = [
             { id: 1, date: '2023-01-01', minutes: 30, steps: 5000, calories_burned: 300 },
         ];
-        (global.fetch as vi.Mock).mockResolvedValueOnce(new Response(JSON.stringify({ items: mockExerciseItems }), { status: 200 }));
+        mockedAxios.get.mockResolvedValueOnce({ data: { items: mockExerciseItems } } as never);
 
         const { result } = renderHook(() => useExercise());
 
@@ -36,7 +39,7 @@ describe('useExercise', () => {
     });
 
     it('should handle fetch error', async () => {
-        (global.fetch as vi.Mock).mockResolvedValueOnce(new Response(null, { status: 500, statusText: 'Server Error' }));
+        mockedAxios.get.mockRejectedValueOnce(new Error('HTTP 500'));
 
         const { result } = renderHook(() => useExercise());
 
@@ -48,7 +51,7 @@ describe('useExercise', () => {
     });
 
     it('should handle network error', async () => {
-        (global.fetch as vi.Mock).mockRejectedValueOnce(new TypeError('Network request failed'));
+        mockedAxios.get.mockRejectedValueOnce(new TypeError('Network request failed'));
 
         const { result } = renderHook(() => useExercise());
 
@@ -63,11 +66,11 @@ describe('useExercise', () => {
         const mockExerciseItems = [
             { id: 1, date: '2023-01-01', minutes: 30, steps: 5000, calories_burned: 300 },
         ];
-        let resolveFetch: (value: Response) => void;
-        (global.fetch as vi.Mock).mockReturnValueOnce(
+        let resolveRequest: (value: unknown) => void;
+        mockedAxios.get.mockReturnValueOnce(
             new Promise(resolve => {
-                resolveFetch = resolve;
-            })
+                resolveRequest = resolve;
+            }) as never
         );
 
         const { result, unmount } = renderHook(() => useExercise());
@@ -78,8 +81,8 @@ describe('useExercise', () => {
         // Unmount the component
         unmount();
 
-        // Resolve the fetch promise
-        resolveFetch!(new Response(JSON.stringify({ items: mockExerciseItems }), { status: 200 }));
+        // Resolve the request promise
+        resolveRequest!({ data: { items: mockExerciseItems } });
 
         // Wait a bit to ensure any potential state updates would have happened
         await new Promise(resolve => setTimeout(resolve, 100));

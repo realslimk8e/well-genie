@@ -1,9 +1,13 @@
 import { render, screen, cleanup } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, test, expect, afterEach, vi } from 'vitest';
+import axios from 'axios';
 import type { SleepItem } from '../../hooks/useSleep';
 import type { DietItem } from '../../hooks/useDiet';
 import type { ExerciseItem } from '../../hooks/useExercise';
+
+vi.mock('axios');
+const mockedAxios = axios as vi.Mocked<typeof axios>;
 
 // Functional Requirement FR-009 and FR-010
 
@@ -61,78 +65,61 @@ const setup = async ({
   // Mock scrollIntoView to prevent TypeError in jsdom
   window.HTMLElement.prototype.scrollIntoView = vi.fn();
 
-  // Mock localStorage to ensure token check passes
-  Storage.prototype.getItem = vi.fn(() => 'mock-token');
-
-  // Mock global fetch to simulate backend responses based on test data
-  global.fetch = vi.fn((url: string, options?: RequestInit) => {
-    const urlStr = url.toString();
-
-    // Mock Suggestions Endpoint
-    if (urlStr.endsWith('/suggestions')) {
+  mockedAxios.get.mockImplementation((url) => {
+    if (url.toString().endsWith('/suggestions')) {
       return Promise.resolve({
-        ok: true,
-        json: () =>
-          Promise.resolve({
-            suggestions: [
-              'Show hours slept',
-              'Show average daily steps',
-              'Show calories vs 2000 target',
-            ],
-          }),
-      });
+        data: {
+          suggestions: [
+            'Show hours slept',
+            'Show average daily steps',
+            'Show calories vs 2000 target',
+          ],
+        },
+      } as never);
+    }
+    return Promise.reject(new Error(`Unexpected GET ${url}`));
+  });
+
+  mockedAxios.post.mockImplementation((url, body) => {
+    if (!url.toString().endsWith('/chat')) {
+      return Promise.reject(new Error(`Unexpected POST ${url}`));
     }
 
-    // Mock Chat Endpoint
-    if (urlStr.endsWith('/chat')) {
-      let message = '';
-      if (options && options.body) {
-        const body = JSON.parse(options.body as string);
-        message = body.message || '';
+    const message = ((body as { message?: string } | undefined)?.message ?? '');
+    let responseText = "I don't understand.";
+
+    if (/hours slept/i.test(message)) {
+      if (sleep.length === 0) {
+        responseText = 'I do not see any sleep data.';
+      } else {
+        const total = sleep.reduce((acc, item) => acc + item.hours, 0);
+        responseText = `You slept ${total.toFixed(1)} hours in the last 7 days.`;
       }
-
-      let responseText = "I don't understand.";
-
-      if (/hours slept/i.test(message)) {
-        if (sleep.length === 0) {
-          responseText = 'I do not see any sleep data.';
-        } else {
-          const total = sleep.reduce((acc, item) => acc + item.hours, 0);
-          responseText = `You slept ${total.toFixed(1)} hours in the last 7 days.`;
-        }
-      } else if (/steps/i.test(message)) {
-        if (exercise.length === 0) {
-          responseText = 'There is no steps data.';
-        } else {
-          const total = exercise.reduce(
-            (acc, item) => acc + (item.steps ?? 0),
-            0,
-          );
-          const avg = Math.round(total / exercise.length);
-          responseText = `Your average daily steps were ${avg.toLocaleString()}.`;
-        }
-      } else if (/calories/i.test(message) || /target/i.test(message)) {
-        if (diet.length === 0) {
-          responseText = 'No nutrition data available.';
-        } else {
-          const total = diet.reduce((acc, item) => acc + item.calories, 0);
-          const avg = Math.round(total / diet.length);
-          responseText = `Your avg daily calories were ${avg}. This is calculated as average.`;
-        }
+    } else if (/steps/i.test(message)) {
+      if (exercise.length === 0) {
+        responseText = 'There is no steps data.';
+      } else {
+        const total = exercise.reduce((acc, item) => acc + (item.steps ?? 0), 0);
+        const avg = Math.round(total / exercise.length);
+        responseText = `Your average daily steps were ${avg.toLocaleString()}.`;
       }
-
-      return Promise.resolve({
-        ok: true,
-        json: () =>
-          Promise.resolve({
-            message: responseText,
-            function_called: null,
-          }),
-      });
+    } else if (/calories/i.test(message) || /target/i.test(message)) {
+      if (diet.length === 0) {
+        responseText = 'No nutrition data available.';
+      } else {
+        const total = diet.reduce((acc, item) => acc + item.calories, 0);
+        const avg = Math.round(total / diet.length);
+        responseText = `Your avg daily calories were ${avg}. This is calculated as average.`;
+      }
     }
 
-    return Promise.resolve({ ok: false });
-  }) as unknown as typeof fetch;
+    return Promise.resolve({
+      data: {
+        message: responseText,
+        function_called: null,
+      },
+    } as never);
+  });
 
   vi.doMock('../../hooks/useSleep', () => ({
     useSleep: () => ({ items: sleep, loading: false, error: null }),
@@ -173,7 +160,7 @@ describe('ChatbotPanel predefined intents and fallbacks', () => {
     expect(stepReplies.at(-1)).toHaveTextContent('8,333');
 
     await user.click(
-      screen.getByRole('button', { name: /calories vs 2000 target/i }),
+      screen.getByRole('button', { name: /^show calories vs 2000 target$/i }),
     );
     const calReplies = await screen.findAllByText(/avg daily calories/i);
     expect(calReplies.at(-1)).toHaveTextContent('2000');
@@ -199,7 +186,7 @@ describe('ChatbotPanel predefined intents and fallbacks', () => {
     expect(await screen.findByText(/no steps data/i)).toBeInTheDocument();
 
     await user.click(
-      screen.getByRole('button', { name: /calories vs 2000 target/i }),
+      screen.getByRole('button', { name: /^show calories vs 2000 target$/i }),
     );
     expect(
       await screen.findByText(/no nutrition data available/i),

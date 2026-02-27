@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import axios from 'axios';
+import { apiClient } from '../lib/apiClient';
 
 interface UploadResult {
   message: string;
@@ -28,15 +29,14 @@ export function useUpload() {
       const formData = new FormData();
       formData.append('file', file);
 
-      const response = await axios.post<UploadResult>(
+      const response = await apiClient.post<UploadResult>(
         '/api/upload',
         formData,
         {
           headers: {
             'Content-Type': 'multipart/form-data',
           },
-          withCredentials: true,
-        }
+        },
       );
 
       setLastResult(response.data);

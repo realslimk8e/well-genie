@@ -1,37 +1,12 @@
 import { useState, useEffect, useRef, type KeyboardEvent } from 'react';
 import { useChat } from '../../hooks/useChat';
+import { usePreferences } from '../../hooks/usePreferences';
 
 export default function ChatbotPanel() {
-  const { messages, loading, sendMessage } = useChat();
+  const { messages, loading, sendMessage, suggestions } = useChat();
+  const { preferences } = usePreferences();
   const [input, setInput] = useState('');
-  const [suggestions, setSuggestions] = useState<string[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const fetchSuggestions = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        if (!token) {
-          console.warn('No auth token found, skipping suggestions fetch');
-          return;
-        }
-
-        const response = await fetch('/api/chat/suggestions', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        if (response.ok) {
-          const data = await response.json();
-          setSuggestions(data.suggestions);
-        }
-      } catch (error) {
-        console.error('Failed to fetch suggestions:', error);
-      }
-    };
-
-    fetchSuggestions();
-  }, []);
 
   // Auto-scroll to bottom
   useEffect(() => {
@@ -121,6 +96,16 @@ export default function ChatbotPanel() {
       {/* Suggestions */}
       {suggestions.length > 0 && (
         <div className="flex flex-wrap gap-2 px-1 pb-2">
+          <button
+            onClick={() =>
+              handleSend(
+                `How did my calories compare to my ${preferences.dailyCalorieTarget} kcal target last week?`,
+              )
+            }
+            className="badge badge-soft badge-info"
+          >
+            Calories vs {preferences.dailyCalorieTarget} target
+          </button>
           {suggestions.map((suggestion, idx) => (
             <button
               key={idx}

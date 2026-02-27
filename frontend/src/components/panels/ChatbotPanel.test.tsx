@@ -13,8 +13,22 @@ describe('ChatbotPanel', () => {
     vi.clearAllMocks();
 
     window.HTMLElement.prototype.scrollIntoView = vi.fn();
-    Storage.prototype.getItem = vi.fn(() => 'mock-token');
 
+    vi.spyOn(useChatHook, 'useChat').mockReturnValue({
+      messages: [],
+      loading: false,
+      sendMessage: mockSendMessage,
+      error: null,
+      suggestions: ['Check Heart Rate', 'Sleep Analysis'],
+      clearMessages: vi.fn(),
+    });
+  });
+
+  afterEach(() => {
+    cleanup();
+  });
+
+  it('renders the empty state correctly', () => {
     vi.spyOn(useChatHook, 'useChat').mockReturnValue({
       messages: [],
       loading: false,
@@ -24,22 +38,6 @@ describe('ChatbotPanel', () => {
       clearMessages: vi.fn(),
     });
 
-    global.fetch = vi.fn(() =>
-      Promise.resolve({
-        ok: true,
-        json: () =>
-          Promise.resolve({
-            suggestions: ['Check Heart Rate', 'Sleep Analysis'],
-          }),
-      }),
-    ) as unknown as typeof fetch;
-  });
-
-  afterEach(() => {
-    cleanup();
-  });
-
-  it('renders the empty state correctly', () => {
     render(<ChatbotPanel />);
     expect(
       screen.getByText("I'm here to help analyze your health data."),
@@ -58,7 +56,7 @@ describe('ChatbotPanel', () => {
       loading: false,
       sendMessage: mockSendMessage,
       error: null,
-      suggestions: [],
+      suggestions: ['Check Heart Rate', 'Sleep Analysis'],
       clearMessages: vi.fn(),
     });
 
@@ -87,7 +85,7 @@ describe('ChatbotPanel', () => {
   it('fetches and displays suggestions', async () => {
     render(<ChatbotPanel />);
 
-    const suggestionBtn = await screen.findByText('Check Heart Rate');
+    const suggestionBtn = screen.getByText('Check Heart Rate');
     expect(suggestionBtn).toBeInTheDocument();
   });
 });

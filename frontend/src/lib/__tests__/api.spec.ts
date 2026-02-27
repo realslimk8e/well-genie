@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import axios from 'axios';
 import { fetchWeek } from '../api';
 import type { WeekRow } from '../data';
@@ -14,8 +14,8 @@ describe('api', () => {
 
     it('should fetch week data successfully', async () => {
         const mockWeekData: WeekRow[] = [
-            { day: 'Mon', sleep: 7, calories: 2000, exercise: 60 },
-            { day: 'Tue', sleep: 8, calories: 2200, exercise: 45 },
+            { day: 'Mon', sleepHrs: 7, steps: 8200 },
+            { day: 'Tue', sleepHrs: 8, steps: 7600 },
         ];
         mockedAxios.get.mockResolvedValueOnce({ data: mockWeekData });
 

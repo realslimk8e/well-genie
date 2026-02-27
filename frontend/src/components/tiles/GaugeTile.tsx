@@ -1,3 +1,5 @@
+import type { CSSProperties } from 'react';
+
 type Props = {
   title: string;
   percent: number;        // 0..100
@@ -6,6 +8,10 @@ type Props = {
 };
 
 export default function GaugeTile({ title, percent, subtitle, tone = "success" }: Props) {
+  const progressStyle = {
+    '--value': percent,
+  } as CSSProperties & Record<'--value', number>;
+
   const toneClass =
     tone === "success" ? "text-success" :
     tone === "warning" ? "text-warning" :
@@ -17,7 +23,7 @@ export default function GaugeTile({ title, percent, subtitle, tone = "success" }
       <div className="card-body p-4">
         <h3 className="card-title text-base">{title}</h3>
         <div className="mt-3 flex items-center gap-4">
-          <div className={`radial-progress ${toneClass}`} style={{ "--value": percent } as any}>
+          <div className={`radial-progress ${toneClass}`} style={progressStyle}>
             {percent}%
           </div>
           <div className="text-sm text-base-content/70">

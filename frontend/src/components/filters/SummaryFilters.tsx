@@ -1,7 +1,10 @@
 import { useState, useMemo } from 'react';
 import { useSleep } from '../../hooks/useSleep';
+import type { SleepItem } from '../../hooks/useSleep';
 import { useExercise } from '../../hooks/useExercise';
+import type { ExerciseItem } from '../../hooks/useExercise';
 import { useDiet } from '../../hooks/useDiet';
+import type { DietItem } from '../../hooks/useDiet';
 
 type Category = 'sleep' | 'steps' | 'nutrition';
 
@@ -39,13 +42,13 @@ export default function SummaryFilters() {
 
   const unified: UnifiedRow[] = useMemo(() => {
     const rows: UnifiedRow[] = [];
-    (sleep as any[]).forEach((r, idx) =>
+    (sleep as SleepItem[]).forEach((r, idx) =>
       rows.push({ category: 'sleep', date: r.date, id: String(r.id ?? `sleep-${idx}`) }),
     );
-    (exercise as any[]).forEach((r, idx) =>
+    (exercise as ExerciseItem[]).forEach((r, idx) =>
       rows.push({ category: 'steps', date: r.date, id: String(r.id ?? `steps-${idx}`) }),
     );
-    (diet as any[]).forEach((r, idx) =>
+    (diet as DietItem[]).forEach((r, idx) =>
       rows.push({ category: 'nutrition', date: r.date, id: String(r.id ?? `nutrition-${idx}`) }),
     );
     return rows;

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { mockWeek, WeekRow } from '../data';
+import { mockWeek } from '../data';
 
 describe('mockWeek data', () => {
     it('should be an array of WeekRow objects', () => {

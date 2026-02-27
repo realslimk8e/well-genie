@@ -47,12 +47,12 @@ vi.mock('../../components/panels/ChatbotPanel', () => ({
 vi.mock('../../components/panels/SettingsPanel', () => ({
   default: () => <div>Settings Panel</div>,
 }));
-vi.mock('../../components/import', () => ({
+vi.mock('../../components/ImportPage', () => ({
   default: () => <div>Import Page</div>,
 }));
 
 // DON'T mock Login/Signup - let the real components render so data-testid works
-// vi.mock('../../components/login');
+// vi.mock('../../components/Login');
 // vi.mock('../../components/Signup');
 
 // Mock hooks
@@ -66,10 +66,9 @@ describe('App', () => {
     mockedAxios.get.mockReset();
     mockedAxios.post.mockReset();
 
-    // Mock window.location.reload
     Object.defineProperty(window, 'location', {
       configurable: true,
-      value: { reload: vi.fn(), hash: '' },
+      value: { hash: '' },
     });
     vi.clearAllMocks();
 

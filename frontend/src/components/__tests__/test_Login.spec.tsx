@@ -2,7 +2,7 @@ import { render, screen, cleanup } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
 
-import Login from '../../components/login';
+import Login from '../../components/Login';
 
 vi.mock('../../hooks/useLogin', () => ({
   useLogin: () => ({
