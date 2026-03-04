@@ -29,9 +29,9 @@ def client_fixture(session: Session):
     from app.models import User
     
     def get_session_override():
-        return session
+        yield session
     
-    async def override_get_current_user():
+    def override_get_current_user():
         """Mock user for testing - bypasses authentication"""
         return User(id=1, username="testuser", email="test@example.com", hashed_password="dummy")
     
@@ -49,13 +49,13 @@ def sleep_entries_fixture(session: Session):
     Covers various dates, hours, and quality values.
     """
     entries = [
-        SleepEntry(date=date(2024, 1, 1), hours=5.5, quality="poor"),
-        SleepEntry(date=date(2024, 1, 2), hours=7.0, quality="good"),
-        SleepEntry(date=date(2024, 1, 3), hours=8.0, quality="good"),
-        SleepEntry(date=date(2024, 1, 4), hours=8.5, quality="excellent"),
-        SleepEntry(date=date(2024, 1, 5), hours=9.0, quality="excellent"),
-        SleepEntry(date=date(2024, 1, 6), hours=7.5, quality="fair"),
-        SleepEntry(date=date(2024, 1, 7), hours=10.0, quality="excellent"),
+        SleepEntry(date=date(2024, 1, 1), hours=5.5, quality="poor", user_id=1),
+        SleepEntry(date=date(2024, 1, 2), hours=7.0, quality="good", user_id=1),
+        SleepEntry(date=date(2024, 1, 3), hours=8.0, quality="good", user_id=1),
+        SleepEntry(date=date(2024, 1, 4), hours=8.5, quality="excellent", user_id=1),
+        SleepEntry(date=date(2024, 1, 5), hours=9.0, quality="excellent", user_id=1),
+        SleepEntry(date=date(2024, 1, 6), hours=7.5, quality="fair", user_id=1),
+        SleepEntry(date=date(2024, 1, 7), hours=10.0, quality="excellent", user_id=1),
     ]
     for entry in entries:
         session.add(entry)
@@ -72,13 +72,13 @@ def exercise_entries_fixture(session: Session):
     Covers various dates, steps, duration, and calories burned.
     """
     entries = [
-        ExerciseEntry(date=date(2024, 1, 1), steps=3000, duration_min=20.0, calories_burned=150.0),
-        ExerciseEntry(date=date(2024, 1, 2), steps=5000, duration_min=30.0, calories_burned=250.0),
-        ExerciseEntry(date=date(2024, 1, 3), steps=6000, duration_min=35.0, calories_burned=300.0),
-        ExerciseEntry(date=date(2024, 1, 4), steps=8000, duration_min=45.0, calories_burned=400.0),
-        ExerciseEntry(date=date(2024, 1, 5), steps=10000, duration_min=60.0, calories_burned=500.0),
-        ExerciseEntry(date=date(2024, 1, 6), steps=12000, duration_min=75.0, calories_burned=600.0),
-        ExerciseEntry(date=date(2024, 1, 7), steps=15000, duration_min=90.0, calories_burned=750.0),
+        ExerciseEntry(date=date(2024, 1, 1), steps=3000, duration_min=20.0, calories_burned=150.0, user_id=1),
+        ExerciseEntry(date=date(2024, 1, 2), steps=5000, duration_min=30.0, calories_burned=250.0, user_id=1),
+        ExerciseEntry(date=date(2024, 1, 3), steps=6000, duration_min=35.0, calories_burned=300.0, user_id=1),
+        ExerciseEntry(date=date(2024, 1, 4), steps=8000, duration_min=45.0, calories_burned=400.0, user_id=1),
+        ExerciseEntry(date=date(2024, 1, 5), steps=10000, duration_min=60.0, calories_burned=500.0, user_id=1),
+        ExerciseEntry(date=date(2024, 1, 6), steps=12000, duration_min=75.0, calories_burned=600.0, user_id=1),
+        ExerciseEntry(date=date(2024, 1, 7), steps=15000, duration_min=90.0, calories_burned=750.0, user_id=1),
     ]
     for entry in entries:
         session.add(entry)
@@ -95,13 +95,13 @@ def diet_entries_fixture(session: Session):
     Covers various dates, calories, and macronutrients.
     """
     entries = [
-        DietEntry(date=date(2024, 1, 1), calories=1500.0, protein_g=75.0, carbs_g=150.0, fat_g=50.0),
-        DietEntry(date=date(2024, 1, 2), calories=1800.0, protein_g=90.0, carbs_g=180.0, fat_g=60.0),
-        DietEntry(date=date(2024, 1, 3), calories=1900.0, protein_g=95.0, carbs_g=200.0, fat_g=65.0),
-        DietEntry(date=date(2024, 1, 4), calories=2000.0, protein_g=100.0, carbs_g=220.0, fat_g=70.0),
-        DietEntry(date=date(2024, 1, 5), calories=2200.0, protein_g=110.0, carbs_g=240.0, fat_g=80.0),
-        DietEntry(date=date(2024, 1, 6), calories=2500.0, protein_g=125.0, carbs_g=280.0, fat_g=90.0),
-        DietEntry(date=date(2024, 1, 7), calories=2800.0, protein_g=140.0, carbs_g=320.0, fat_g=100.0),
+        DietEntry(date=date(2024, 1, 1), calories=1500.0, protein_g=75.0, carbs_g=150.0, fat_g=50.0, user_id=1),
+        DietEntry(date=date(2024, 1, 2), calories=1800.0, protein_g=90.0, carbs_g=180.0, fat_g=60.0, user_id=1),
+        DietEntry(date=date(2024, 1, 3), calories=1900.0, protein_g=95.0, carbs_g=200.0, fat_g=65.0, user_id=1),
+        DietEntry(date=date(2024, 1, 4), calories=2000.0, protein_g=100.0, carbs_g=220.0, fat_g=70.0, user_id=1),
+        DietEntry(date=date(2024, 1, 5), calories=2200.0, protein_g=110.0, carbs_g=240.0, fat_g=80.0, user_id=1),
+        DietEntry(date=date(2024, 1, 6), calories=2500.0, protein_g=125.0, carbs_g=280.0, fat_g=90.0, user_id=1),
+        DietEntry(date=date(2024, 1, 7), calories=2800.0, protein_g=140.0, carbs_g=320.0, fat_g=100.0, user_id=1),
     ]
     for entry in entries:
         session.add(entry)
