@@ -42,7 +42,9 @@ async def delete_exercise_entries(
     start_date: date,
     end_date: date,
     session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
 ):
     """Delete exercise entries within a date range."""
-    deleted_count = delete_exercise_records(session, start_date, end_date)
+    assert current_user.id is not None
+    deleted_count = delete_exercise_records(session, start_date, end_date, current_user.id)
     return {"message": f"Successfully deleted {deleted_count} exercise entries."}

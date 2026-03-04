@@ -68,6 +68,8 @@ def seed_sleep_data(session: Session):
     """Seed sleep entries for the past 30 days"""
     print("\nSeeding sleep data...")
     
+    admin_user = session.exec(select(User).where(User.username == "admin")).one()
+
     sleep_qualities = ["excellent", "good", "fair", "poor"]
     base_date = date.today() - timedelta(days=30)
     
@@ -79,10 +81,12 @@ def seed_sleep_data(session: Session):
         hours = 7.0 + (i % 4) * 0.5 - 1.0
         quality = sleep_qualities[i % len(sleep_qualities)]
         
+        assert admin_user.id is not None
         entry = SleepEntry(
             date=entry_date,
             hours=hours,
-            quality=quality
+            quality=quality,
+            user_id=admin_user.id
         )
         sleep_entries.append(entry)
         session.add(entry)
@@ -95,6 +99,8 @@ def seed_diet_data(session: Session):
     """Seed diet entries for the past 30 days"""
     print("\nSeeding diet data...")
     
+    admin_user = session.exec(select(User).where(User.username == "admin")).one()
+
     base_date = date.today() - timedelta(days=30)
     
     diet_entries = []
@@ -107,12 +113,15 @@ def seed_diet_data(session: Session):
         carbs_g = 200 + (i % 12) * 15
         fat_g = 60 + (i % 6) * 5
         
+        assert admin_user.id is not None
+
         entry = DietEntry(
             date=entry_date,
             calories=float(calories),
             protein_g=float(protein_g),
             carbs_g=float(carbs_g),
-            fat_g=float(fat_g)
+            fat_g=float(fat_g),
+            user_id=admin_user.id
         )
         diet_entries.append(entry)
         session.add(entry)
@@ -125,6 +134,8 @@ def seed_exercise_data(session: Session):
     """Seed exercise entries for the past 30 days"""
     print("\nSeeding exercise data...")
     
+    admin_user = session.exec(select(User).where(User.username == "admin")).one()
+
     base_date = date.today() - timedelta(days=30)
     
     exercise_entries = []
@@ -136,11 +147,14 @@ def seed_exercise_data(session: Session):
         duration_min = 30 + (i % 8) * 10
         calories_burned = 200 + (i % 10) * 50
         
+        assert admin_user.id is not None
+
         entry = ExerciseEntry(
             date=entry_date,
             steps=steps,
             duration_min=float(duration_min),
-            calories_burned=float(calories_burned)
+            calories_burned=float(calories_burned),
+            user_id=admin_user.id
         )
         exercise_entries.append(entry)
         session.add(entry)

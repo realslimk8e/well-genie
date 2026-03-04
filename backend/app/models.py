@@ -3,12 +3,14 @@ from datetime import date
 
 class SleepEntry(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
+    user_id: int = Field(foreign_key="user.id", index=True)  # add this
     date: date
     hours: float
     quality: str
 
 class ExerciseEntry(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
+    user_id: int = Field(foreign_key="user.id", index=True)  # add this
     date: date
     steps: int
     duration_min: float
@@ -16,6 +18,7 @@ class ExerciseEntry(SQLModel, table=True):
 
 class DietEntry(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
+    user_id: int = Field(foreign_key="user.id", index=True)  # add this
     date: date
     calories: float
     protein_g: float
