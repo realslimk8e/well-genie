@@ -36,8 +36,10 @@ async def get_diet_entries(
 async def delete_diet_entries(
     start_date: date,
     end_date: date,
+    current_user: User = Depends(get_current_user),
     session: Session = Depends(get_session),
 ):
     """Delete diet entries within a date range."""
-    deleted_count = delete_diet_records(session, start_date, end_date)
+    assert current_user.id is not None
+    deleted_count = delete_diet_records(session, start_date, end_date, current_user.id)
     return {"message": f"Successfully deleted {deleted_count} diet entries."}

@@ -19,7 +19,7 @@ class TestIngestServiceSleep:
 2024-01-02,8.0,excellent""")
         file = UploadFile(filename="sleep.csv", file=csv_content)
         
-        result = await ingest_service.ingest_csv(file, "sleep", session)
+        result = await ingest_service.ingest_csv(file, "sleep", session, user_id=1)
         
         assert result["inserted"] == 2
         assert result["success"] is True
@@ -41,7 +41,7 @@ class TestIngestServiceSleep:
 2024-01-03,8.0,fair""")
         file = UploadFile(filename="sleep.csv", file=csv_content)
         
-        result = await ingest_service.ingest_csv(file, "sleep", session)
+        result = await ingest_service.ingest_csv(file, "sleep", session, user_id=1)
         
         # Should insert valid rows and report errors for invalid ones
         assert result["inserted"] == 2  # Rows 1 and 3
@@ -61,7 +61,7 @@ class TestIngestServiceDiet:
 2024-01-02,2200.0,110.0,260.0,75.0""")
         file = UploadFile(filename="diet.csv", file=csv_content)
         
-        result = await ingest_service.ingest_csv(file, "diet", session)
+        result = await ingest_service.ingest_csv(file, "diet", session, user_id=1)
         
         assert result["inserted"] == 2
         assert result["success"] is True
@@ -87,7 +87,7 @@ class TestIngestServiceExercise:
 2024-01-02,12000,75.0,600.0""")
         file = UploadFile(filename="exercise.csv", file=csv_content)
         
-        result = await ingest_service.ingest_csv(file, "exercise", session)
+        result = await ingest_service.ingest_csv(file, "exercise", session, user_id=1)
         
         assert result["inserted"] == 2
         assert result["success"] is True
@@ -112,7 +112,7 @@ class TestIngestServiceDataCleaning:
 2024-01-01,  7.5  ,  good  """)
         file = UploadFile(filename="sleep.csv", file=csv_content)
         
-        result = await ingest_service.ingest_csv(file, "sleep", session)
+        result = await ingest_service.ingest_csv(file, "sleep", session, user_id=1)
         
         assert result["inserted"] == 1
         
@@ -129,7 +129,7 @@ class TestIngestServiceDataCleaning:
 2024-01-01,7.5,good""")
         file = UploadFile(filename="sleep.csv", file=csv_content)
         
-        result = await ingest_service.ingest_csv(file, "sleep", session)
+        result = await ingest_service.ingest_csv(file, "sleep", session, user_id=1)
         
         assert result["inserted"] == 1
 
@@ -145,7 +145,7 @@ class TestIngestServiceErrorHandling:
         file = UploadFile(filename="unknown.csv", file=csv_content)
         
         with pytest.raises(ValueError, match="Unknown category"):
-            await ingest_service.ingest_csv(file, "unknown", session)
+            await ingest_service.ingest_csv(file, "unknown", session, user_id=1)
     
     @pytest.mark.asyncio
     async def test_reports_row_number_in_errors(self, session: Session):
@@ -156,7 +156,7 @@ class TestIngestServiceErrorHandling:
 invalid-date,8.0,excellent""")
         file = UploadFile(filename="sleep.csv", file=csv_content)
         
-        result = await ingest_service.ingest_csv(file, "sleep", session)
+        result = await ingest_service.ingest_csv(file, "sleep", session, user_id=1)
         
         assert len(result["errors"]) == 1
         assert "Row 3" in result["errors"][0]  # Row 3 in the file (header is row 1)
@@ -171,7 +171,7 @@ invalid-date,8.0,excellent
 2024-01-03,6.5,poor""")
         file = UploadFile(filename="sleep.csv", file=csv_content)
         
-        result = await ingest_service.ingest_csv(file, "sleep", session)
+        result = await ingest_service.ingest_csv(file, "sleep", session, user_id=1)
         
         # Should insert 2 valid rows
         assert result["inserted"] == 2
@@ -195,7 +195,7 @@ class TestIngestServiceDateParsing:
 2024-01-15,7.5,good""")
         file = UploadFile(filename="sleep.csv", file=csv_content)
         
-        result = await ingest_service.ingest_csv(file, "sleep", session)
+        result = await ingest_service.ingest_csv(file, "sleep", session, user_id=1)
         
         assert result["inserted"] == 1
         
@@ -210,7 +210,7 @@ class TestIngestServiceDateParsing:
 01/15/2024,7.5,good""")
         file = UploadFile(filename="sleep.csv", file=csv_content)
         
-        result = await ingest_service.ingest_csv(file, "sleep", session)
+        result = await ingest_service.ingest_csv(file, "sleep", session, user_id=1)
         
         assert result["inserted"] == 0
         assert len(result["errors"]) == 1
@@ -227,7 +227,7 @@ class TestIngestServiceEmptyFile:
         csv_content = BytesIO(b"date,hours,quality")
         file = UploadFile(filename="sleep.csv", file=csv_content)
         
-        result = await ingest_service.ingest_csv(file, "sleep", session)
+        result = await ingest_service.ingest_csv(file, "sleep", session, user_id=1)
         
         assert result["inserted"] == 0
         assert len(result["errors"]) == 0

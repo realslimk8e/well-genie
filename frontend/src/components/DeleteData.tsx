@@ -24,9 +24,7 @@ export default function DeleteData({ category, onSuccess }: DeleteDataProps) {
     try {
       const response = await fetch(
         `/api/${category}?start_date=${startDate}&end_date=${endDate}`,
-        {
-          method: 'DELETE',
-        },
+        { method: 'DELETE' },
       );
 
       const data = await response.json();
@@ -36,7 +34,7 @@ export default function DeleteData({ category, onSuccess }: DeleteDataProps) {
       }
 
       setSuccessMessage(data.message || 'Data deleted successfully.');
-      onSuccess(); // Refetch data in parent
+      onSuccess();
       setStartDate('');
       setEndDate('');
     } catch (err: Error | unknown) {
@@ -60,10 +58,11 @@ export default function DeleteData({ category, onSuccess }: DeleteDataProps) {
       <h4 className="mb-2 font-bold capitalize">{category} Data</h4>
       <div className="flex flex-wrap items-end gap-4">
         <div className="form-control">
-          <label className="label">
+          <label className="label" htmlFor={`${category}-start-date`}>
             <span className="label-text">Start Date</span>
           </label>
           <input
+            id={`${category}-start-date`}
             type="date"
             className="input input-bordered w-full"
             value={startDate}
@@ -71,10 +70,11 @@ export default function DeleteData({ category, onSuccess }: DeleteDataProps) {
           />
         </div>
         <div className="form-control">
-          <label className="label">
+          <label className="label" htmlFor={`${category}-end-date`}>
             <span className="label-text">End Date</span>
           </label>
           <input
+            id={`${category}-end-date`}
             type="date"
             className="input input-bordered w-full"
             value={endDate}
