@@ -1,8 +1,8 @@
 import { render, screen, cleanup } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import ChatbotPanel from './ChatbotPanel';
-import * as useChatHook from '../../hooks/useChat';
+import ChatbotPanel from '../ChatbotPanel';
+import * as useChatHook from '../../../hooks/useChat';
 
 vi.mock('../../hooks/useChat');
 
